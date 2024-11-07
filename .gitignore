@@ -31,3 +31,6 @@ heatmap_contour4_png
 *.rds
 !metadata.rds
 !data.rds
+*.err
+*.out
+*.sh

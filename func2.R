@@ -158,8 +158,9 @@ otu_meta_fun <- function(dd){
   
   wide_dd <- dd %>%
     dplyr::select(subject, taxon, count, group) %>%
-    spread(key = taxon, value = count) %>%
-    setNames(c("subject","group", paste0("taxon",1:ntaxa))) 
+    spread(key = taxon, value = count) %>% 
+    setNames(c("subject","group", paste0("taxon",1:ntaxa)))    
+#  colnames(wide_dd) = c("subject","group", paste0("taxon",1:ntaxa))
   
   otu_table  =  wide_dd %>%
     dplyr::select(paste0("taxon",1:ntaxa))

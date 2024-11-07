@@ -1,4 +1,3 @@
-setwd("/project/6006158/agronahm/Michael-n-Ben-Repo/")
 source("reproducible/new_sim/func.R")
 source("reproducible/new_sim/param.R")
 source("reproducible/new_sim/Load_Packages.R")
