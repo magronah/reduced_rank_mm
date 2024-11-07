@@ -1,0 +1,83 @@
+
+R version 4.3.1 (2023-06-16) -- "Beagle Scouts"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> setwd("/project/6006158/agronahm/Michael-n-Ben-Repo/")
+> library(NBZIMM)
+> 
+> if(FALSE){
++ path = paste0(getwd(),"/reproducible/power/datasets/")
++ 
++ countdata    =  readRDS(paste0(path,"otu_dataset_list.rds"))
++ metadata     =  readRDS(paste0(path,"metadata.rds"))
++ 
++ cc      =   commandArgs(trailingOnly  = TRUE)
++ i       =   as.integer(cc[1])
++ 
++ name1   =   names(countdata$filtered_otu)[i]
++ name2   =   names(metadata)[i]
++ stopifnot(name1 == name2)
++ 
++ count_dd  =   as.data.frame(t(countdata$filtered_otu[[i]]))
++ met_dd    =   metadata[[i]]
++ 
++ 
++ met_dd$dummy = factor(1)
++ mod        =   mms(y = count_dd, fixed = ~Groups,
++                      random = ~ 1|dummy,
++                      zi_fixed = ~1,
++                      data = met_dd, method = "zinb") 
++ 
++ saveRDS(mod, file=paste0("~/scratch/dataset/new_sim/zero_inflation_est/mod",i, ".rds"))
++ }
+> 
+> 
+> l = list()
+> for(k in 1:7){
++ r = readRDS(paste0("~/scratch/dataset/new_sim/zero_inflation_est/mod",k, ".rds"))
++ l[[k]] = range(as.numeric(unlist(lapply(r$fit,function(x){plogis(x$zi.fit[[1]])}))))
++ }
+> 
+> l
+[[1]]
+[1] 0.2254422 0.8787500
+
+[[2]]
+[1] 0.09176632 0.89722222
+
+[[3]]
+[1] 0.001748252 0.940034965
+
+[[4]]
+[1] 0.04507106 0.91902174
+
+[[5]]
+[1] 0.4695353 0.9268293
+
+[[6]]
+[1] 0.003937008 0.927559055
+
+[[7]]
+[1] 0.006024096 0.915662651
+
+> 
+> saveRDS(l, file=paste0(getwd(),"/reproducible/new_sim/zero_inflation_est.rds"))
+> 
+> proc.time()
+   user  system elapsed 
+106.479  12.582 124.419 
