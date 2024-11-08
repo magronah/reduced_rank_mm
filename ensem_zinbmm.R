@@ -1,23 +1,29 @@
-setwd("/project/6006158/agronahm/Michael-n-Ben-Repo/")
 library(NBZIMM)
-path = paste0(getwd(),"/reproducible/new_sim/100_300/")
+library(DESeq2)
+path = paste0(getwd(),"/100_300/")
 ####################################################################
 data	=   readRDS(paste0(path,"otu_meta_list_withzi_taxa.rds"))
 ################################################################
 cc	=   commandArgs(trailingOnly  = TRUE)
-i	=   as.integer(cc[1])
+#i	=   as.integer(cc[1])
+i=1
 dd	=   data[[i]]
 ################################################################
 countdata  =   dd$countdata
 met_dd     =   dd$met_data
 met_dd$dummy = factor(1)
 
-mod        =   mms(y = countdata, fixed = ~group,
-                      random = ~ 1|dummy,
+otu_count    =   t(countdata)
+  dds        =   DESeqDataSetFromMatrix(otu_count,met_dd, ~group)
+  dds        =   DESeq(dds,sfType ="poscounts",minReplicatesForReplace=Inf) 
+  normalizer =   sizeFactors(dds) 
+
+mod        =   mms(y = countdata, fixed = ~group + offset(normalizer),
+                      random =  ~ 1|dummy,
                       zi_fixed = ~1,
                       data = met_dd, method = "zinb")
 
-saveRDS(mod, file=paste0("~/scratch/dataset/new_sim/100_300/zinbmm/mod",i, ".rds"))
+saveRDS(mod, file=paste0("~/scratch/dataset/RR/100_300/zinbmm/mod",i,".rds"))
 
 
 

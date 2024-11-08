@@ -14,7 +14,7 @@ form      =   count ~ 1 + us(1 + group|taxon)
 ################################################################
 cc      =   commandArgs(trailingOnly  = TRUE)
 i       =   as.integer(cc[1]) 
-i =1 
+
 dd      =   data[[i]]
 ################################################################
 ##now add normalization constant 
@@ -31,16 +31,37 @@ gprior  <- data.frame(prior = "gamma(2, 2.5)",
 
 form2  =   update(form,.~. + offset(normalizer))
 
-system.time(
-  fit  <-  glmmTMB(form2, data = df,
-                   family  = nbinom2, 
-                   ziformula  = ~ 1 + (1|taxon),
-                   prior   = gprior,
-                   REML    = TRUE,
-                   control = par_ctrl
+fit <- tryCatch({
+  system.time(
+    glmmTMB(form2, data = df,
+            family = nbinom2,
+            ziformula = ~ 1 + (1|taxon),
+            prior = gprior,
+            REML = TRUE,
+            control = par_ctrl)
   )
-)
+}, error = function(e) {
+ 
+  message("Error in first attempt, trying again without prior...")
+  system.time(
+    glmmTMB(form2, data = df,
+            family = nbinom2,
+            ziformula = ~ 1 + (1|taxon),
+            REML = TRUE,
+            control = par_ctrl)
+  )
+})
 
-saveRDS(fit, file=paste0("~/scratch/dataset/new_sim/100_300/us_mod/mod",i, ".rds"))
 
-View(df)
+
+#  fit  <-  glmmTMB(form2, data = df,
+#                   family  = nbinom2, 
+#                   ziformula  = ~ 1 + (1|taxon),
+                   #prior   = gprior,
+#                   REML    = TRUE,
+#                   control = par_ctrl
+#  )
+
+
+saveRDS(fit, file=paste0("~/scratch/dataset/RR/100_300/us/mod",i,".rds"))
+

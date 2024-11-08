@@ -34,20 +34,12 @@ par_ctrl <- glmmTMBControl(
   
   options(glmmTMB_openmp_debug = TRUE)
   blas_set_num_threads(1)
-  
-  system.time(
-    fit <- glmmTMB(form2, data = df,
-                   family = nbinom2,
-                   ziformula = ~1 + (1|taxon),
-                   control = par_ctrl  # Ensure par_ctrl is correctly configured for glmmTMB
-    )
-  )
-  
+    
   system.time(
     fit  <-  glmmTMB(form2, data = df,
                      family  = nbinom2,
                      ziformula  = ~1 + (1|taxon),
-                     #prior   = gprior,
+                     prior   = gprior,
                      REML    = TRUE,
                      control = par_ctrl
     )

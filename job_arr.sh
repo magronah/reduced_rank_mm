@@ -10,7 +10,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=100G
 
-#SBATCH --array=8-300
+#SBATCH --array=1-300
 #SBATCH --output=array-%j-%a.out               # log file
 #SBATCH --error=array-%j-%a.err                # error file
 
@@ -23,5 +23,5 @@ module load r/4.3.1
 
 # Run R script with array index as argument
 
-Rscript ensem_rr_zi.R $SLURM_ARRAY_TASK_ID
+Rscript ensem_zinbmm.R $SLURM_ARRAY_TASK_ID
 
