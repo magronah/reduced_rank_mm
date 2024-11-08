@@ -1,15 +1,20 @@
-source("reproducible/new_sim/func.R")
-source("reproducible/new_sim/param.R")
-source("reproducible/new_sim/Load_Packages.R")
-source("reproducible/new_sim/initial_param0.R")
-source("load_glmmTMB.R")
-path      =   paste0(getwd(),"/reproducible/new_sim/100_300/")
+library(RhpcBLASctl)
+library(Matrix)
+library(huge)
+library(glmmTMB)
+library(tidyverse)
+library(dplyr)
+library(DESeq2)
+source("func2.R")
+source("initial_param0.R")
+path = paste0(getwd(),"/100_300/")
 ###########################################################
-data      =   readRDS(paste0(path,"sim_count_list_nozi.rds"))
+data      =   readRDS(paste0(path,"sim_count_list_withzi_taxa.rds"))
 form      =   count ~ 1 + us(1 + group|taxon)  
 ################################################################
 cc      =   commandArgs(trailingOnly  = TRUE)
 i       =   as.integer(cc[1]) 
+i =1 
 dd      =   data[[i]]
 ################################################################
 ##now add normalization constant 
@@ -29,6 +34,7 @@ form2  =   update(form,.~. + offset(normalizer))
 system.time(
   fit  <-  glmmTMB(form2, data = df,
                    family  = nbinom2, 
+                   ziformula  = ~ 1 + (1|taxon),
                    prior   = gprior,
                    REML    = TRUE,
                    control = par_ctrl
@@ -37,4 +43,4 @@ system.time(
 
 saveRDS(fit, file=paste0("~/scratch/dataset/new_sim/100_300/us_mod/mod",i, ".rds"))
 
-
+View(df)
