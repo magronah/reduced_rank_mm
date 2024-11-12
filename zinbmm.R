@@ -18,6 +18,12 @@ otu_count    =   t(countdata)
   dds        =   DESeq(dds,sfType ="poscounts",minReplicatesForReplace=Inf) 
   normalizer =   sizeFactors(dds) 
 
+print(pp <- .libPaths())
+packageVersion("nlme")
+for (p in pp) {
+    print(packageVersion("nlme", lib.loc = p))
+}
+
 mod        =   mms(y = countdata, fixed = ~group + offset(normalizer),
                       random =  ~ 1|dummy,
                       zi_fixed = ~1,
