@@ -21,6 +21,42 @@ get_theta_corrRR <- function(d, n, logsdvec) {
 }
 
 
+deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
+                     minReplicatesForReplace = Inf, 
+                     cooksCutoff = FALSE,
+                     independentFiltering = FALSE, 
+                     shrinkage_method="normal"){
+  
+  #check otu table is in otu by samples format
+  if(all((met_data$subject)==colnames(countdata)) == FALSE){
+    countdata = t(countdata)
+  }
+  
+  #remove samples with zeros for all taxa (if any such sample exist)
+  keep <- (colSums(countdata) > 0)
+  countdata = countdata[,keep]
+  met_data= met_data[keep, ]
+  
+  # call deseq
+  dds <- DESeqDataSetFromMatrix(countdata,met_data, ~group)
+  dds$group <- relevel(dds$group, ref = ref_name)
+  
+  dds <- DESeq(dds,sfType ="poscounts",
+               minReplicatesForReplace = minReplicatesForReplace) 
+  
+  res <- results(dds, cooksCutoff=cooksCutoff, 
+                 independentFiltering=independentFiltering,
+                 alpha = alpha_level)
+  
+  reslt <- lfcShrink(dds, res=res, coef=2, type=shrinkage_method)
+  
+  deseq_est = data.frame(reslt)
+  deseq_est$dispersion = dispersions(dds)
+  deseq_dd   =  deseq_est  %>% 
+    rownames_to_column(var = "param_name")
+  deseq_dd
+}
+
 # extract otu table and metadata
 norm_fun <- function(dd){
   
