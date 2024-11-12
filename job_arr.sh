@@ -5,7 +5,7 @@
 
 # Job parameters
 #SBATCH --job-name=my_job
-#SBATCH --time=01:00:00
+#SBATCH --time=04:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=100G
@@ -23,5 +23,5 @@ module load r/4.3.1
 
 # Run R script with array index as argument
 
-Rscript ensem_zinbmm.R $SLURM_ARRAY_TASK_ID
+Rscript rr.R $SLURM_ARRAY_TASK_ID
 
