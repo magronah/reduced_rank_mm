@@ -7,13 +7,14 @@ library(dplyr)
 library(DESeq2)
 source("func2.R")
 source("initial_param0.R")
-path = paste0(getwd(),"/100_300/")
+path = paste0(getwd(),"/",nsubj,"_",ntaxa,"/")
+path
 ###########################################################
-data	  =   readRDS(paste0(path,"sim_count_list_withzi_taxa.rds"))
-form	  =   count ~ 1 + us(1 + group|taxon) +  rr(0 + taxon | subject,2)
+data      =   readRDS(paste0(path,"sim_count_list_withzi_taxa.rds"))
+form      =   count ~ 1 + us(1 + group|taxon) +  rr(0 + taxon | subject,2)
 ################################################################
 cc =   commandArgs(trailingOnly  = TRUE)
-i	  =   as.integer(cc[1])
+i         =   as.integer(cc[1])
 
 ##Fit the model
 par_ctrl <- glmmTMBControl(
@@ -21,7 +22,7 @@ par_ctrl <- glmmTMBControl(
 )
 
 
- dd	=   data[[i]]
+ dd     =   data[[i]]
   ################################################################
   ##now add normalization constant 
   df  =  otu_meta_fun(dd)
@@ -29,32 +30,32 @@ par_ctrl <- glmmTMBControl(
   gprior  <- data.frame(prior = "gamma(2, 2.5)",
                         class = "theta_sd",
                         coef = "")
-  
+
   form2  =   update(form,.~. + offset(normalizer))
-  
+
   options(glmmTMB_openmp_debug = TRUE)
   blas_set_num_threads(1)
-    
+
   system.time(
     fit  <-  glmmTMB(form2, data = df,
                      family  = nbinom2,
-                     ziformula  = ~1 + (1|taxon),
                      prior   = gprior,
                      REML    = TRUE,
                      control = par_ctrl
     )
   )
-  
-#saveRDS(fit, file=paste0(path, "mod_fit/mod",i,".rds"))
 
 
-saveRDS(fit, file=paste0("~/scratch/dataset/RR/100_300/rr/mod",i,".rds"))
-# true =  readRDS(paste0(path,"true_param.rds"))
+file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","rr/")
 
-# res  =  ranef(fit, condVar=FALSE)
-# est  = (res$cond$taxon$grouptreat)
-# 
-# plot(est,true$true_param)
-# abline(0,1)
-# nsim
-                                                    
+if (!dir.exists(file_path)) {
+  dir.create(file_path, recursive = TRUE)
+  cat("Folder created at:", file_path, "\n")
+} else {
+  cat("Folder already exists at:", file_path, "\n")
+}
+
+
+
+saveRDS(fit, file=paste0(file_path,"mod",i,".rds")) 
+

@@ -71,9 +71,9 @@ saveRDS(true_b, file = paste0(path,"true_param.rds"))
 saveRDS(res_dd1, file = paste0(path,"sim_count_list_nozi.rds"))
 saveRDS(res_dd2, file = paste0(path,"otu_meta_list_nozi.rds"))
 ####################################################################  
-true_pars3          =   c(true_pars1, thetazi = 2)
+true_pars3          =   c(true_pars1, thetazi =  log(diff(qlogis(c(0.12, 0.92)))/4))
 set.seed(seed)
-true_pars3$betazi   =  0 #rnorm(ntaxa, mean =0, sd  =2) 
+true_pars3$betazi   =  qlogis(((0.12) +(0.92))/2)
 #########################################################################
 #### Sanity check
 pars3 <- simulate_new(RHSForm(form, as.form = TRUE), nsim = 1, seed = NULL,

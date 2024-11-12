@@ -23,7 +23,7 @@ mod        =   mms(y = countdata, fixed = ~group + offset(normalizer),
                       zi_fixed = ~1,
                       data = met_dd, method = "zinb")
 
-saveRDS(mod, file=paste0("~/scratch/dataset/RR/100_300/zinbmm/mod",i,".rds"))
+#saveRDS(mod, file=paste0("~/scratch/dataset/RR/100_300/zinbmm/mod",i,".rds"))
 
 
 

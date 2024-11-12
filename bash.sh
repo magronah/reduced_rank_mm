@@ -16,4 +16,4 @@
 module load r/4.3.1
 
 
-R CMD BATCH  zero_inflation_est.R  zero_inflation_est.Rout
+R CMD BATCH simulate_data.R simulate_data.Rout
