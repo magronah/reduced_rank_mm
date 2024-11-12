@@ -5,7 +5,7 @@
 
 # Job parameters
 #SBATCH --job-name=my_job
-#SBATCH --time=04:00:00
+#SBATCH --time=00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=100G
@@ -19,9 +19,9 @@
 
 
 # Load R module
-module load r/4.3.1
+module load r/4.4.0
 
 # Run R script with array index as argument
 
-Rscript rr.R $SLURM_ARRAY_TASK_ID
+Rscript nbmm.R $SLURM_ARRAY_TASK_ID
 

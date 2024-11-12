@@ -13,7 +13,6 @@
 #SBATCH --mail-type=FAIL                  # when to email
 #SBATCH --account=def-bolker
 
-module load r/4.3.1
-
+module load r/4.4.0
 
 R CMD BATCH simulate_data.R simulate_data.Rout
