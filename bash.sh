@@ -15,4 +15,4 @@
 
 module load r/4.4.0
 
-R CMD BATCH simulate_data.R simulate_data.Rout
+R CMD BATCH rrres.R  rrres.Rout
