@@ -15,4 +15,4 @@
 
 module load r/4.4.0
 
-R CMD BATCH rrres.R  rrres.Rout
+R CMD BATCH rrzires.R  rrzires.Rout

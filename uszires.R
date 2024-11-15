@@ -11,9 +11,9 @@ path
 files <-   list.files(path, full.names = TRUE)
 
 res = foreach(i = files, .combine ="cbind") %do% {
-  mod  =   readRDS(i)
-  dd   =  (ranef(mod)$cond$taxon$grouptreat)
-  dd 
+    mod  =   readRDS(i)
+    dd   =  (ranef(mod,condVar = FALSE)$cond$taxon$grouptreat)
+    dd
 }
 
 

@@ -1,7 +1,10 @@
 library(foreach)
+library(huge)
 library(glmmTMB)
+library(Matrix)
 source("func2.R")
 source("initial_param0.R")
+
 path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/rrzi")
 path
 ##########################################################

@@ -36,14 +36,24 @@ par_ctrl <- glmmTMBControl(
   options(glmmTMB_openmp_debug = TRUE)
   blas_set_num_threads(1)
 
-  system.time(
-    fit  <-  glmmTMB(form2, data = df,
+#fit <- tryCatch({
+#system.time(
+  mod   =   glmmTMB(form2, data = df,
                      family  = nbinom2,
                      prior   = gprior,
                      REML    = TRUE,
-                     control = par_ctrl
-    )
-  )
+                     control = par_ctrl)
+#)
+
+#}, error = function(e) {
+#     message("Error in first attempt, trying again without prior...")
+# mod = system.time(
+#       glmmTMB(form2, data = df,
+#                     family  = nbinom2,
+#                     REML    = TRUE,
+#                     control = par_ctrl)
+#  )
+#})
 
 
 file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","rr/")
@@ -55,7 +65,5 @@ if (!dir.exists(file_path)) {
   cat("Folder already exists at:", file_path, "\n")
 }
 
-
-
-saveRDS(fit, file=paste0(file_path,"mod",i,".rds")) 
+saveRDS(mod, file=paste0(file_path,"mod",i,".rds")) 
 

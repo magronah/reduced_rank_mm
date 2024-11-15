@@ -3,18 +3,18 @@ library(tibble)
 library(ggplot2)
 library(tidyverse)
 library(patchwork)
-source("reproducible/new_sim/func.R")
+source("func2.R")
 ########################################################################################
-path        =   paste0(getwd(), "/reproducible/new_sim/data/")
-fig_path    =   paste0(getwd(), "/reproducible/new_sim/fig/")
+path        =   paste0(getwd(), "data/")
+fig_path    =   paste0(getwd(), "fig/")
 ########################################################################################
-true_param  =  readRDS(paste0(path, "true_param_new.rds"))
-rr_est      =  readRDS(paste0(path, "rr_parametric_new.rds"))
-deseq_est   =  readRDS(paste0(path, "deseq_parametric_new.rds"))
+true_param  =  readRDS(paste0(path, "true_param.rds"))
+rr         =  readRDS(paste0(path, "rr.rds"))
+deseq     =  readRDS(paste0(path, "deseq.rds"))
 #########################################################################################
 ##convert to long format
-rr_dd       =   dd_long(rr_est,true_param,label="with_rr")
-deseq_dd       =   dd_long(deseq_est,true_param,label="without_rr")
+rr_dd       =   dd_long(rr,true_param,label="with_rr")
+deseq_dd       =   dd_long(deseq,true_param,label="without_rr")
 #########################################################################################
 rr_para_conf   =   para_confint(rr_dd, true_param, alpha = 0.05)
 deseq_para_conf   =   para_confint(deseq_dd, true_param, alpha = 0.05)

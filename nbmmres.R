@@ -1,24 +1,24 @@
-setwd("/project/6006158/agronahm/Michael-n-Ben-Repo/")
-
-library(foreach)
 library(NBZIMM)
+library(foreach)
+library(huge)
+library(glmmTMB)
+library(Matrix)
+source("func2.R")
+source("initial_param0.R")
+############################################################
+path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/nbmm")
+path
 
 
-path  =   "~/scratch/dataset/new_sim/100_300/nbmm_mod/"
 files =   list.files(path, full.names = TRUE)
 
-res   = foreach(i = files,.packages = "NBZIMM") %do% {     
+res   = foreach(i = files,.combine = "cbind",.packages = "NBZIMM") %do% {     
      mod   =   readRDS(i)
-     est   =   unlist(lapply(mod$fit, function(x){coef(x)$fixed[["grouptreat"]]}))
-     est
+     pp    =   fixed(mod)$dist
+     pp[(pp$variables) == "grouptreat",][["Estimate"]]
 }
-
-
-names_list    =  lapply(res, function(x){names(x)})
-common_names  =  Reduce(intersect, names_list)
-dd   =   as.data.frame(lapply(res, function(x){x[names(x) %in% common_names]}))
-
-
-rownames(dd)  =    common_names
+dd    =   as.data.frame(res)
+print(dd)
 colnames(dd)  =    paste0("nsim",1:ncol(dd))
-saveRDS(dd, file = paste0(getwd(), "/reproducible/new_sim/100_300/parametric_nbmm.rds"))
+saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"/nbmm.rds"))
+

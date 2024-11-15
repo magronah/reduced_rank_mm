@@ -32,22 +32,18 @@ gprior  <- data.frame(prior = "gamma(2, 2.5)",
 form2  =   update(form,.~. + offset(normalizer))
 
 fit <- tryCatch({
-  system.time(
     glmmTMB(form2, data = df,
             family = nbinom2,
             prior = gprior,
             REML = TRUE,
             control = par_ctrl)
-  )
 }, error = function(e) {
 
   message("Error in first attempt, trying again without prior...")
-  system.time(
-    glmmTMB(form2, data = df,
+     glmmTMB(form2, data = df,
             family = nbinom2,
             REML = TRUE,
             control = par_ctrl)
-  )
 })
 
 

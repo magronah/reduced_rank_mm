@@ -1,18 +1,21 @@
-setwd("/project/6006158/agronahm/Michael-n-Ben-Repo/")
-
 library(foreach)
-
-directory_path <-   "~/scratch/dataset/new_sim/100_300/deseq_res/" 
-files          <-   list.files(directory_path, full.names = TRUE)
+library(huge)
+library(Matrix)
+source("func2.R")
+source("initial_param0.R")
+############################################################
+path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/deseq")
+path
+ 
+files          <-   list.files(path, full.names = TRUE)
 
 res = foreach(i = files, .combine = "cbind") %do% {
-     res        =    readRDS(i)
-     res$log2FoldChange
+     r        =    readRDS(i)
+     r$log2FoldChange
 }
 
-res            =    as.data.frame(res)
-colnames(res)  =    paste0("nsim", 1:ncol(res))
-rownames(res)  =    paste0("taxon",1:nrow(res))
+dd             =    as.data.frame(res)
+colnames(dd)  =    paste0("nsim", 1:ncol(dd))
+rownames(dd)  =    paste0("taxon",1:nrow(dd))
 
-saveRDS(res, file = paste0(getwd(),"/reproducible/new_sim/100_300/parametric_deseq.rds"))
-
+saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"/deseq.rds"))

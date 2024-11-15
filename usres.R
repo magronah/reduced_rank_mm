@@ -11,9 +11,9 @@ path
 files <-   list.files(path, full.names = TRUE)
 
 res = foreach(i = files, .combine ="cbind") %do% {
-  mod  =   readRDS(i)
-  dd   =  (ranef(mod)$cond$taxon$grouptreat)
-  dd 
+    mod  =   readRDS(i)
+    dd   =  (ranef(mod,condVar = FALSE)$cond$taxon$grouptreat)
+    dd
 }
 
 
@@ -21,3 +21,4 @@ dd            =  as.data.frame(res)
 rownames(dd)  =  paste0("taxon",1:nrow(dd))
 colnames(dd)  =  paste0("sim",1:ncol(dd))
 saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"/us.rds"))
+

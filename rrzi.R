@@ -40,7 +40,7 @@ par_ctrl <- glmmTMBControl(
     fit  <-  glmmTMB(form2, data = df,
                      family  = nbinom2,
                      ziformula  = ~1 + (1|taxon),
-                     prior   = gprior,
+#                     prior   = gprior,
                      REML    = TRUE,
                      control = par_ctrl
     )
