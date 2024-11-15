@@ -8,9 +8,7 @@ source("func2.R")
 path        =   paste0(getwd(), "data/")
 fig_path    =   paste0(getwd(), "fig/")
 ########################################################################################
-true_param  =  readRDS(paste0(path, "true_param.rds"))
-rr         =  readRDS(paste0(path, "rr.rds"))
-deseq     =  readRDS(paste0(path, "deseq.rds"))
+dd          =    load_data(path) 
 #########################################################################################
 ##convert to long format
 rr_dd       =   dd_long(rr,true_param,label="with_rr")

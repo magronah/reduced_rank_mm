@@ -1,3 +1,18 @@
+
+load_data <- function(path) {
+  list(
+    true_param =  readRDS(paste0(path,"true_param.rds")),
+          rr   =  readRDS(paste0(path, "rr.rds")),
+        rrzi   =  readRDS(paste0(path, "rrzi.rds")),
+	us     =  readRDS(paste0(path, "us.rds")),
+	uszi   =  readRDS(paste0(path, "uszi.rds")),
+	deseq  =  readRDS(paste0(path, "deseq.rds")),
+	nbmm   =  readRDS(paste0(path, "nbmm.rds")),
+	zinbmm =  readRDS(paste0(path, "zinbmm.rds"))
+
+  )
+}
+
 ## goal: pick 'theta' parameters for a reduced-rank model in a sensible way
 ##' @param d rank (dimension)
 ##' @param n full dimension (latent variables per group)
