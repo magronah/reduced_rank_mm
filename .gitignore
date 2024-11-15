@@ -34,3 +34,10 @@ heatmap_contour4_png
 *.err
 *.out
 *.sh
+!rr.rds
+!rrzi.rds
+!us.rds
+!uszi.rds
+!nbmm.rds
+!zinbmm.rds
+!deseq.rds
