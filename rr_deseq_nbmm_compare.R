@@ -4,47 +4,191 @@ library(ggplot2)
 library(tidyverse)
 library(patchwork)
 source("func2.R")
-########################################################################################
-path        =   paste0(getwd(), "data/")
-fig_path    =   paste0(getwd(), "fig/")
-########################################################################################
-dd          =    load_data(path) 
-#########################################################################################
-##convert to long format
-rr_dd       =   dd_long(rr,true_param,label="with_rr")
-deseq_dd       =   dd_long(deseq,true_param,label="without_rr")
-#########################################################################################
-rr_para_conf   =   para_confint(rr_dd, true_param, alpha = 0.05)
-deseq_para_conf   =   para_confint(deseq_dd, true_param, alpha = 0.05)
-#########################################################################################
-## Combine average estimates with true estimates
-dd       =   rbind(rr_para_conf,deseq_para_conf)
-dd       =   dd %>% arrange(true_param)
+fig_path=   paste0(getwd(), "fig/")
+#####################################################
+path1   =   paste0(getwd(),"/50_200/")
+path2   =   paste0(getwd(),"/100_300/")
+path3   =   paste0(getwd(),"/150_500/")
+#####################################################
+dd1     =   load_data(path1) 
+dd2     =   load_data(path2) 
+dd3     =   load_data(path3) 
+#####################################################
+pp1     =   do.call(rbind,dd1[["confint"]]) %>% 
+              arrange(true_param)
+pp2     =   do.call(rbind,dd2[["confint"]]) %>% 
+              arrange(true_param)
+pp3     =   do.call(rbind,dd3[["confint"]]) %>% 
+              arrange(true_param)
+###################################################################
+# Create plots in a loop
+plot_list <- list()
+
+for (i in seq(1, 200, by = 10)) {
+  taxon_range <- paste0("taxon", i:(i + 9))
+  plot_list[[length(plot_list) + 1]] <- ggplot(pp1 %>% filter(param_name %in% taxon_range), 
+                                               aes(x = true_param, y = param_name, color = model)) +
+    geom_point(position = position_dodge(width = 0.5)) + 
+    coord_flip() +
+    geom_errorbarh(aes(xmin = lwr, xmax = upr), position = position_dodge(width = 0.5), height = 0.2) +
+    theme_bw() +
+    theme(axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank()) +
+    labs(x = "Estimate", title = paste("Parameters", i, "-", i + 9))
+}
+
+(plot_list[[1]] | plot_list[[2]]) / 
+(plot_list[[3]] | plot_list[[4]]) +
+  plot_layout(guides = "collect") & 
+  theme(legend.position = "bottom")
+############################################################
+bias1    =    err_extract(dd1, "avg_bias")
+bias11   =    reorganise_dd(bias1, "bias")
+bias11$label  = factor("50 subjects and 200 ntaxa")
+
+bias2   =   err_extract(dd2, "avg_bias")
+bias22   =   reorganise_dd(bias2, "bias")
+bias22$label  = factor("100 subjects and 300 ntaxa")
+
+bias3   =   err_extract(dd3, "avg_bias")
+bias33   =   reorganise_dd(bias3, "bias")
+bias33$label  = factor("150 subjects and 500 ntaxa")
+###################################################
+mse1    =   err_extract(dd1, "avg_mse")
+mse11   =   reorganise_dd(mse1, "mse")
+mse11$label  = factor("50 subjects and 200 ntaxa")
+
+mse2   =   err_extract(dd2, "avg_mse")
+mse22   =   reorganise_dd(mse2, "mse")
+mse22$label  = factor("100 subjects and 300 ntaxa")
+
+mse3   =   err_extract(dd3, "avg_mse")
+mse33   =   reorganise_dd(mse3, "mse")
+mse33$label  = factor("150 subjects and 500 ntaxa")
+###################################################
+mse_dd  =  rbind(mse11,mse22,mse33)
+bias_dd =  rbind(bias11,bias22,bias33)
+##################################################
+n = 11
+oka_col = c(
+  "#0000FF",
+  "#556B2F", 
+  "#E23D28", 
+  "#E69F00", 
+  "#000000",
+  "#56B4E9", 
+  "#D55E00"  # Vermilion
+  #"#56B4E9", # Sky Blue
+  #"#009E73", # Bluish Green
+  #"#F0E442", # Yellow
+  #"#0072B2", # Blue
+)
+
+g1 =  ggplot(mse_dd, aes(x =  type, y = average_value, 
+                         color = factor(model, levels = unique(model)))) +
+  geom_point() +
+  scale_color_manual(values = oka_col) +
+  ylab("average value across taxa") +
+  custom_theme(n) +
+  labs(color = "model")+
+  facet_wrap(~label, scales = "free") +
+  theme(axis.title.x = element_blank())
+g1
+
+
+g2 =  ggplot(bias_dd, aes(x =  type, y = average_value,  color =model)) +
+  geom_point() +
+  scale_color_manual(values = oka_col) +
+  ylab("average value across taxa") +
+  custom_theme(n) +
+  labs(color = "model")+
+  facet_wrap(~label, scales = "free") +
+  theme(axis.title.x = element_blank())
+g2
+
+
+#########################################################################
+
+g3 =  ggplot(mse3, aes(x =  type, y = average_value,  color =model)) +
+  geom_point() +
+  #scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange")) +
+  ylab("average value across taxa") +
+  custom_theme(n) +
+  theme(axis.title.x = element_blank())
+###############################################################
+g4 =  ggplot(bias1, aes(x =  type, y = average_value,  color =model)) +
+      geom_point() +
+    #scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange")) +
+      ylab("average value across taxa") +
+      custom_theme(n) +
+      theme(axis.title.x = element_blank())
+
+g5 =  ggplot(bias2, aes(x =  type, y = average_value,  color =model)) +
+  geom_point() +
+  #scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange")) +
+  ylab("average value across taxa") +
+  custom_theme(n) +
+  theme(axis.title.x = element_blank())
+
+
+g6 =  ggplot(bias3, aes(x =  type, y = average_value,  color =model)) +
+  geom_point() +
+  #scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange")) +
+  ylab("average value across taxa") +
+  custom_theme(n) +
+  theme(axis.title.x = element_blank())
+
+
+(g1|g2|g3)/(g4|g5|g6) +   plot_layout(guides = "collect") 
+  theme(legend.position = "bottom") # Position the legend
+
+
+g4
+
+View(dd1$error$rr)
+
+ 
+g2= ggplot(err1, aes(x =  param_name, y = mse, 
+                                    group = model, color = model)) +
+  geom_point() +
+  geom_line() +
+  #scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange","true_param" = "blue")) +
+  xlab("taxa") +
+  ylab("mean squared error") +
+  #custom_theme(n) +
+  theme(axis.text.x = element_blank()) 
+
+g2
+##plots
+
 
 ##### comparing average estimate with true parameter value
 n  = 13
-g1 = ggplot(dd, aes(x = param_name, y = average_estimate, group = model, 
-                    color= factor(model, levels = c("with_rr", "without_rr", "true_param")))) +
+g1 = ggplot(pp1, aes(x = param_name, y = average_estimate, group = model, 
+                    color= factor(model, levels = unique(model) ))) +
   geom_point() +
   geom_point(aes(x = param_name, y = true_param,color="true_param")) +
   geom_line() +
-  scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange", "true_param" = "blue")) +
+  #scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange", "true_param" = "blue")) +
   labs(color = "model") +   
   xlab("taxa") +
   ylab("average estimate")  +
-  custom_theme(n) +
+  #custom_theme(n) +
+  theme_bw() +
   theme(axis.text.x = element_blank()) 
 
 ggsave(paste0(fig_path,"deseq_rr_est.png"), plot = g1, width = 8, height = 6, dpi = 500)
 ###################################################################
+names(dd1$error$rr)
 ##### Compare their MSE
-rr_error    =    error_cal(rr_est, true_param, model = "with_rr")
+rr_error    =    error_cal(rr, true_param, model = "with_rr")
 deseq_error    =    error_cal(deseq_est, true_param, model = "without_rr")
 
 full_summary_dd_all         =    rbind(rr_error$full_summary_dd,    
                                        deseq_error$full_summary_dd)
 
-single_summary_dd_all       =    rbind(rr_error$single_sum_dd,    
+single_summary_dd_all       =      rbind(rr_error$single_sum_dd,    
                                        deseq_error$single_sum_dd)
 ###################################################################
 g2= ggplot(full_summary_dd_all, aes(x =  param_name, y = mse, 
@@ -59,15 +203,15 @@ g2= ggplot(full_summary_dd_all, aes(x =  param_name, y = mse,
 
 ggsave(paste0(fig_path,"deseq_rr_mse.png"), plot = g2, width = 8, height = 6, dpi = 500)
 ###################################################################
-g3 = ggplot(full_summary_dd_all, aes(x =  param_name, y = bias, group = model, color = model)) +
+g3 = ggplot(err1, aes(x =  param_name, y = bias, group = model, color = model)) +
   geom_point() +
   geom_line() +
-  scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange" )) +
+ # scale_color_manual(values = c("with_rr" = "red", "without_rr" = "orange" )) +
   xlab("taxa") +
   ylab("bias") + 
-  custom_theme(n) +
+  #custom_theme(n) +
   theme(axis.text.x = element_blank()) 
-
+g3
 ggsave(paste0(fig_path,"deseq_rr_bias.png"), plot = g3, width = 8, height = 6, dpi = 500)
 ###################################################################
 g4=ggplot(single_summary_dd_all, aes(x =  type, y = average_value,

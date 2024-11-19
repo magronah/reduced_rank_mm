@@ -1,16 +1,153 @@
+custom_theme <- function(n) {
+  theme_bw(base_size = n) +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      text = element_text(size = n, family = "Roboto"),
+      axis.text.x = element_text(family = "Roboto", size = n, color = "black"),
+      axis.text.y = element_text(family = "Roboto", size = n, color = "black")
+    )
+}
+#################################################################
 
-load_data <- function(path) {
-  list(
-    true_param =  readRDS(paste0(path,"true_param.rds")),
-          rr   =  readRDS(paste0(path, "rr.rds")),
-        rrzi   =  readRDS(paste0(path, "rrzi.rds")),
-	us     =  readRDS(paste0(path, "us.rds")),
-	uszi   =  readRDS(paste0(path, "uszi.rds")),
-	deseq  =  readRDS(paste0(path, "deseq.rds")),
-	nbmm   =  readRDS(paste0(path, "nbmm.rds")),
-	zinbmm =  readRDS(paste0(path, "zinbmm.rds"))
+load_data <- function(path, alpha = 0.05) {
+ 
+  true_param =  readRDS(paste0(path,"true_param.rds"))
+  ####################################################
+  rr     =  readRDS(paste0(path, "rr.rds"))
+  rrzi   =  readRDS(paste0(path, "rrzi.rds"))
+  us     =  readRDS(paste0(path, "us.rds"))
+  uszi   =  readRDS(paste0(path, "uszi.rds"))
+deseqL2  =  readRDS(paste0(path, "deseq.rds"))
+  deseq  =    deseqL2*log(2)
+  nbmm   =  readRDS(paste0(path, "nbmm.rds"))
+  rownames(nbmm) = paste0("taxon",1:nrow(nbmm))
+  zinbmm =  readRDS(paste0(path, "zinbmm.rds"))
+  rownames(zinbmm) = paste0("taxon",1:nrow(zinbmm))
+  ####################################################
+  rrl    =   dd_long(rr,   true_param,label="rr")
+  rrzil  =   dd_long(rrzi, true_param,label="rrzi")
+  usl    =   dd_long(us,  true_param,label="us")
+  uszil  =   dd_long(uszi, true_param,label="uszi")
+  deseql =   dd_long(deseq, true_param,label="deseq")
+  nbmml  =   dd_long(nbmm,  true_param,label="nbmm")
+ zinbmml =   dd_long(zinbmm, true_param,label="zinbmm")
+  ####################################################
+ dd = lst(true_param,rr, rrzi, us, uszi, deseq, nbmm, zinbmm)
+  ##convert to long format
+ long_dd = list(rr = rrl, rrzi = rrzil, us = usl, 
+                uszi =  uszil, deseq  =  deseql, 
+                nbmm  = nbmml, zinbmm  = zinbmml)
 
+  confint = list(
+    rr      =   para_confint(rrl, true_param, alpha = alpha),
+    rrzi    =   para_confint(rrzil, true_param, alpha = alpha),
+    us      =   para_confint(usl, true_param, alpha = alpha),
+    uszi    =   para_confint(uszil, true_param, alpha = alpha),
+    deseq   =   para_confint(deseql, true_param, alpha = alpha),
+    nbmm    =   para_confint(nbmml, true_param, alpha = alpha),
+    zinbmm  =   para_confint(zinbmml, true_param, alpha = alpha)
+  ) 
+ 
+  
+  error = list(
+    rr      =   error_cal(rr, true_param, model = "rr"),
+    rrzi    =   error_cal(rrzi, true_param, model = "rrzi"),
+    us      =   error_cal(us, true_param, model = "us"),
+    uszi    =   error_cal(uszi, true_param, model = "uszi"),
+    deseq   =   error_cal(deseq, true_param, model = "deseq"),
+    nbmm    =   error_cal(nbmm, true_param, model = "nbmm"),
+    zinbmm  =   error_cal(zinbmm, true_param, model = "zinbmm")
+  ) 
+  
+  lst(dd,long_dd, confint, error)
+
+}
+
+error_cal <- function(model_est_dd, true_param_dd, model) {
+  
+  est_dd  =   model_est_dd %>%
+    rownames_to_column(var = "param_name")
+  merge_ddd     =   left_join(true_param_dd, est_dd, by = "param_name")  
+  merge_dd      =   merge_ddd  %>% dplyr::select(-param_name) 
+  error     =   data.frame(t(apply(merge_dd, 1, 
+                                   function(x){(x["true_param"] -  x)})))
+  
+  df1       =   data.frame(param_name  =   merge_ddd$param_name,
+                           true_param  =   merge_ddd$true_param,
+                           bias        =   rowMeans(error),
+                           mse         =   rowMeans(error^2))
+  
+  df2     =    data.frame(average_value  =   mean(rowMeans(error)))
+  df3     =    data.frame(average_value  =   mean(rowMeans(error^2)))
+  
+  df1$model   =  rep(model,nrow(df1)) 
+  df2$model   =  rep(model,nrow(df2)) 
+  df3$model   =  rep(model,nrow(df3)) 
+  
+  res     =   lst(full_summary_dd=df1, error, avg_bias = df2, avg_mse = df3)
+  
+  return(res)
+}
+
+
+###########################################################
+err_extract = function(data_list, extract_name){
+  summaries <- lapply(data_list$error, function(x) x[[extract_name]])
+  do.call(rbind, summaries)
+}
+###########################################################
+reorganise_dd =  function(dd, name){
+  
+  rr_row <- dd[dd$model == "rr", ]
+  rr_rep <- rr_row[rep(1, nrow(dd) - 1), ] 
+  rr_rep$type  = paste0(name,1:nrow(rr_rep))
+  
+  other_mod  = dd %>%
+    filter(model != "rr")  %>%  
+    dplyr::arrange(average_value) %>%
+  mutate(type = paste0(name, row_number()))
+  
+  result <- rbind(rr_rep, other_mod) 
+  result
+}
+###########################################################
+#' Title
+#'
+#' @param est_wide 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dd_long  =  function(dd_wide,dd_true_param,label="rr"){
+  dd = (dd_wide
+        |> rownames_to_column("param_name")
+        |> pivot_longer(-param_name, names_to="sim", values_to = "estimate")
   )
+  dd$model  =  rep(label,nrow(dd))
+  df             =  left_join(dd,dd_true_param, by = "param_name")
+  df
+}
+
+
+
+para_confint  = function(est_data, true_dd,  alpha = 0.05){
+  dd = (est_data
+        |> group_by(param_name)
+        |> summarise(lwr = quantile(estimate, alpha/2),
+                     upr = quantile(estimate, 1-alpha/2), 
+                     average_estimate  =  mean(estimate))
+        |> mutate(param_name = factor(param_name, levels = param_name))
+  )
+  
+  dd$model  =   rep(unique(est_data$model), nrow(dd))
+  ddd      =   left_join(dd, true_dd, by = "param_name")
+  
+  ddd    =  ddd %>% 
+    mutate(param_name = factor(param_name, 
+                               levels = unique(param_name[order(true_param)])))
+  
+  ddd
 }
 
 ## goal: pick 'theta' parameters for a reduced-rank model in a sensible way
