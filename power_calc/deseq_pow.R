@@ -6,18 +6,15 @@ library(foreach)
 source("func2.R")
 source("initial_param0.R")
 ############################################################
-path = paste0(getwd(),"/",nsubj,"_",ntaxa,"/")
-path
+path  =  "/project/6006158/agronahm/reduced_rank_mm/"
+pval  =  readRDS(dd, file = paste0(path,nsubj,"_",ntaxa,"/pvalues/deseq.rds"))
 ####################################################################
-data      =   readRDS(paste0(path,"otu_meta_list_withzi_taxa.rds"))
-row
-path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/deseq")
-path
+dd        =   readRDS(paste0(path,nsubj,"_",ntaxa,"otu_meta_list_withzi_taxa.rds"))
+effect    =   readRDS(paste0(path,nsubj,"_",ntaxa,"true_param.rds"))
+mean_count  =  rowMeans(dd)
 ############################################################
-#true effect
 
 
-# true mean count
 
 files   =   list.files(path, full.names = TRUE)
 res = foreach(i = files, .combine = "cbind") %do% {
