@@ -15,4 +15,4 @@
 
 module load r/4.4.0
 
-R CMD BATCH rrzires.R  rrzires.Rout
+R CMD BATCH deseqres.R deseqres.Rout
