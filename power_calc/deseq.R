@@ -3,8 +3,9 @@ library(DESeq2)
 library(Matrix)
 library(huge)
 library(foreach)
-source("func2.R")
-source("initial_param0.R")
+
+source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
+source("/project/6006158/agronahm/reduced_rank_mm/initial_param0.R")
 ############################################################
 path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/deseq")
 path
@@ -15,8 +16,8 @@ res = foreach(i = files, .combine = "cbind") %do% {
   res$padj
 }
 
-res            =    as.data.frame(res)
-colnames(res)  =    paste0("nsim", 1:ncol(res))
-rownames(res)  =    paste0("taxon",1:ntaxa)
+dd            =    as.data.frame(res)
+colnames(dd)  =    paste0("nsim", 1:ncol(dd))
+rownames(dd)  =    paste0("taxon",1:ntaxa)
 
-saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"pvalues/deseq.rds"))
+saveRDS(dd, file = paste0("/project/6006158/agronahm/reduced_rank_mm/",nsubj,"_",ntaxa,"/pvalues/deseq.rds"))
