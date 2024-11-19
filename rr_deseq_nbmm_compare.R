@@ -85,16 +85,19 @@ oka_col = c(
   #"#0072B2", # Blue
 )
 
-g1 =  ggplot(mse_dd, aes(x =  type, y = average_value, 
+g1=ggplot(bias11, aes(x =  type, y = average_value, 
                          color = factor(model, levels = unique(model)))) +
   geom_point() +
   scale_color_manual(values = oka_col) +
   ylab("average value across taxa") +
   custom_theme(n) +
   labs(color = "model")+
-  facet_wrap(~label, scales = "free") +
+  #facet_wrap(~label, scales = "free") +
   theme(axis.title.x = element_blank())
 g1
+
+dim(dd1$dd$rr)
+x11()
 
 
 g2 =  ggplot(bias_dd, aes(x =  type, y = average_value,  color =model)) +
