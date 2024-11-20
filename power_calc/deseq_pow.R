@@ -7,10 +7,22 @@ library(scam)
 source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
 source("/project/6006158/agronahm/reduced_rank_mm/initial_param0.R")
 ############################################################
-path  =  paste0("/project/6006158/agronahm/reduced_rank_mm/",nsubj,"_",ntaxa)
+# Define sets of nsubj and ntaxa
+parameter_sets <- list(
+  #list(nsubj = 50, ntaxa = 200),
+  list(nsubj = 100, ntaxa = 300),
+  list(nsubj = 150, ntaxa = 500)
+)
 
-pvalue      =   readRDS(paste0(path,"/pvalues/deseq.rds"))
-pvalue      =   rowMeans(pvalue)
+# Loop through parameter sets
+for (params in parameter_sets) {
+  nsubj <- params$nsubj
+  ntaxa <- params$ntaxa
+
+  # Set file paths
+  path <- paste0("/project/6006158/agronahm/reduced_rank_mm/", nsubj, "_", ntaxa, "/")
+   pvalue      =   readRDS(paste0(path,"/pvalues/deseq.rds"))
+   pvalue      =   rowMeans(pvalue)
 ####################################################################
 data        =   readRDS(paste0(path,"/otu_meta_list_withzi_taxa.rds"))
 effect      =   readRDS(paste0(path,"/true_param.rds"))
@@ -31,3 +43,4 @@ if (!dir.exists(file_path)) {
 }
 
 saveRDS(mod, file=paste0(file_path,"deseq.rds"))
+}
