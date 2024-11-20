@@ -27,6 +27,11 @@ gam_fit <- function(pvalue, effect_size, mean_count,
 }
 
 
+#################################################################
+pvalue_cal =  function(dd){
+  data.frame(pvalue=apply(dd, 1, function(x){
+    2*min(c(mean(x < 0), mean(x > 0)))})) 
+}
 ###############################################################
 power_pred =  function(object, newdata){
   

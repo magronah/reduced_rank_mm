@@ -16,6 +16,8 @@ data        =   readRDS(paste0(path,"/otu_meta_list_withzi_taxa.rds"))
 effect      =   readRDS(paste0(path,"/true_param.rds"))
 effect_size =   effect$true_param
 mean_count  =   colMeans(do.call(rbind,lapply(data, function(x) (x$countdata))))
+
+saveRDS(mean_count, file = paste0(path, "/mean_count.rds"))
 ############################################################
 mod    =  gam_fit(pvalue, effect_size, mean_count,grid_len = 500,alpha_level = 0.05)
 
