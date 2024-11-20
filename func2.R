@@ -1,3 +1,110 @@
+gam_fit <- function(pvalue, effect_size, mean_count,
+                    grid_len = 100, alpha_level = 0.05){
+  
+  pval_reject  =   (!is.na(pvalue) & pvalue < alpha_level)
+  
+  comb      =   tibble(lmean_count  =  log(mean_count),
+                       abs_lfc      =  abs(effect_size),
+                       pval_reject  =  as.numeric(pval_reject))
+  
+  #fit scams
+  fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc, bs="tedmi"),
+                         data = comb, family = binomial)
+  
+  pp   =   with(comb,
+                expand.grid(lmean_count = seq(min(lmean_count),
+                                              max(lmean_count),
+                                              length  = grid_len),
+                            abs_lfc   =  seq(min(abs_lfc),
+                                             max(abs_lfc),
+                                             length  =  grid_len)))
+  
+  #predict power
+  pp$power <- predict(fit_2d, newdata = pp,type = "response")
+  
+  p=list(combined_data = comb, power_estimate = pp, fit_2d=fit_2d)
+  p
+}
+
+
+power_predict_dd =  function(mod_obj_list, newdata){
+  
+  pow  =  list()
+  len  =  length(mod_obj_list)
+  
+  for(i in 1:len){
+    pow[[i]]  =   predict(mod_obj_list[[i]], newdata = newdata, type = "response")
+  }
+  
+  if(!is.null(names(mod_obj_list))){
+    names(pow)   =   names(mod_obj_list)
+  }
+  
+  power_dd      =   data.frame(power = unlist(pow),
+                               model =  rep(names(pow), 
+                                            each = nrow(newdata)))
+  
+  
+  pow_dd        =   cbind(newdata, power_dd)
+  pow_dd
+}
+
+
+gam_fit2 <- function(pval,lfoldchange,lmean_abund,
+                     grid_len = 100){
+  
+  #pval_reject  =   (!is.na(pval) & pval < alpha_level)
+  
+  comb      =   tibble(lmean_abund  =  lmean_abund,
+                       abs_lfc      =  abs(lfoldchange),
+                       pval_reject  =  as.numeric(pval))
+  
+  #fit scams
+  fit_2d       =    mgcv::gam(pval_reject ~ te(lmean_abund, abs_lfc),
+                              data = comb, family = binomial)
+  
+  pp   =   with(comb,
+                expand.grid(lmean_abund = seq(min(lmean_abund),
+                                              max(lmean_abund),
+                                              length  = grid_len),
+                            abs_lfc   =  seq(min(abs_lfc),
+                                             max(abs_lfc),
+                                             length  =  grid_len)))
+  #predict power
+  pp$power <- predict(fit_2d, newdata = pp,type = "response")
+  
+  p=list(combined_data = comb, power_estimate = pp, fit_2d=fit_2d)
+  p
+}
+
+otu_meta_lst_fun = function(res_dd1){
+  
+  res_dd2   = list()
+  for(i in 1:length(res_dd1)){
+    dd  =  res_dd1[[i]]
+    
+    otu_table <- dd %>%
+      dplyr::select(subject, taxon, count, group)
+    
+    otu_table <- spread(otu_table, key = taxon, value = count) 
+    colnames(otu_table) <- c("subject","group", paste0("taxon",1:ntaxa))
+    
+    met_data    =   otu_table %>%
+      dplyr::select(subject,group)
+    
+    countdata     =    otu_table %>%
+      dplyr::select(-c(subject,group))
+    
+    rownames(countdata) = (met_data$subject)
+    
+    res_dd2[[i]]= lst(countdata,met_data)
+  }
+  
+  names(res_dd2)  =   paste0("sim", 1:nsim)
+  res_dd2
+}
+
+
 custom_theme <- function(n) {
   theme_bw(base_size = n) +
     theme(

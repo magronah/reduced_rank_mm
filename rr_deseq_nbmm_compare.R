@@ -6,7 +6,8 @@ library(patchwork)
 source("func2.R")
 fig_path=   paste0(getwd(), "fig/")
 #####################################################
-path1   =   paste0(getwd(),"/50_200/")
+path1   =   paste0(getwd(),"/50_200_previous_500sim/")
+# path1   =   paste0(getwd(),"/50_200/")
 path2   =   paste0(getwd(),"/100_300/")
 path3   =   paste0(getwd(),"/150_500/")
 #####################################################
@@ -16,10 +17,23 @@ dd3     =   load_data(path3)
 #####################################################
 pp1     =   do.call(rbind,dd1[["confint"]]) %>% 
               arrange(true_param)
+pp1$width =  pp1$upr - pp1$lwr
+
 pp2     =   do.call(rbind,dd2[["confint"]]) %>% 
               arrange(true_param)
 pp3     =   do.call(rbind,dd3[["confint"]]) %>% 
               arrange(true_param)
+
+
+mod <- c("rr","nbmm")
+
+ggplot(pp1 %>% filter(model %in% mod) , aes(y= param_name, color = model)) +
+  #geom_text(aes(x=upr,label=upr,color=model),size=2, hjust=-0.4,vjust=-0.9, show.legend = FALSE)+
+  #geom_text(aes(x=lwr,label=lwr,color=model),size=2, hjust=1.2,vjust=-0.9, show.legend = FALSE)+
+  geom_errorbarh(aes(xmin=lwr,xmax=upr,color=model),height=4)+
+  #geom_point() +
+  #geom_line() +
+  theme_bw()
 ###################################################################
 # Create plots in a loop
 plot_list <- list()
