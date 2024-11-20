@@ -30,6 +30,7 @@ for (params in parameter_sets) {
   
   # Compute p-values for all models
   pvals <- lapply(pval_data, pvalue_cal)
+  names(pvals) <- c("rr", "rrzi", "us", "uszi")
   
   # Read mean count data
   mean_count <- readRDS(paste0(path, "/mean_count.rds"))
@@ -49,6 +50,20 @@ for (params in parameter_sets) {
   
   # Save models
   lapply(names(models), function(name) {
+    saveRDS(models[[name]], file = paste0(file_path, name, ".rds"))
+  })
+  
+  # Create output directory if it doesn't exist
+  file_path2 <- paste0(path, "/pvlaues/")
+  if (!dir.exists(file_path2)) {
+    dir.create(file_path2, recursive = TRUE)
+    cat("Folder created at:", file_path2, "\n")
+  } else {
+    cat("Folder already exists at:", file_path2, "\n")
+  }
+  
+  # Save pvalues
+  lapply(names(pvals), function(name) {
     saveRDS(models[[name]], file = paste0(file_path, name, ".rds"))
   })
 }
