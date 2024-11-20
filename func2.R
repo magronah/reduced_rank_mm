@@ -27,6 +27,16 @@ gam_fit <- function(pvalue, effect_size, mean_count,
 }
 
 
+###############################################################
+power_pred =  function(object, newdata){
+  
+  power   =  data.frame(power = predict(object, 
+                                        newdata = newdata, 
+                                        type = "response"))
+  cbind(newdata, power)
+}
+###############################################################
+
 power_predict_dd =  function(mod_obj_list, newdata){
   
   pow  =  list()

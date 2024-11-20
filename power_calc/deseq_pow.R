@@ -28,8 +28,4 @@ if (!dir.exists(file_path)) {
   cat("Folder already exists at:", file_path, "\n")
 }
 
-
-
 saveRDS(mod, file=paste0(file_path,"deseq.rds"))
-
-#mm
