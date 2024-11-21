@@ -42,3 +42,4 @@ heatmap_contour4_png
 !zinbmm.rds
 !deseq.rds
 !true_param.rds
+!mean_count.rds
