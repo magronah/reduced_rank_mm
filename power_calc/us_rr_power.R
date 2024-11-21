@@ -7,8 +7,11 @@ library(foreach)
 library(scam)
 library(tidyverse)
 #############################################
-source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
-source("/project/6006158/agronahm/reduced_rank_mm/initial_param0.R")
+source("func2.R")
+source("initial_param0.R")
+
+#source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
+#source("/project/6006158/agronahm/reduced_rank_mm/initial_param0.R")
 
 # Define sets of nsubj and ntaxa
 parameter_sets <- list(
@@ -24,8 +27,10 @@ for (params in parameter_sets) {
   nsubj <- params$nsubj
   ntaxa <- params$ntaxa
   
+  path <- paste0(getwd(), "/", nsubj, "_", ntaxa, "/")
+  
   # Set file paths
-  path <- paste0("/project/6006158/agronahm/reduced_rank_mm/", nsubj, "_", ntaxa, "/")
+  #path <- paste0("/project/6006158/agronahm/reduced_rank_mm/", nsubj, "_", ntaxa, "/")
   
   # Load data and extract parameters
   dd <- load_data(path)
@@ -33,7 +38,7 @@ for (params in parameter_sets) {
   effect_size <- dd$dd$true_param$true_param
  # pval_data <- dd$dd[c("rr", "rrzi", "us", "uszi")]
  
- pval_data <- dd$dd[c("rr", "rrzi", "us")]
+  pval_data <- dd$dd[c("rr", "rrzi", "us")]
   
   # Compute p-values for all models
   pvals <- lapply(pval_data, pvalue_cal)
