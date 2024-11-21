@@ -4,6 +4,10 @@ library(foreach)
 library(doParallel)
 library(NBZIMM)
 
+library(dplyr)
+
+
+
 ##############################################################
 ### nbmm
 directory_path <-   "~/scratch/dataset/new_sim/nbmm_pval/"

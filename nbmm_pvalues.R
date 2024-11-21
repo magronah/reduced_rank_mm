@@ -23,7 +23,7 @@ y = otu[, 1]
 
 f1 = glmm.nb(y ~ Days + Age + Race + preg, random = ~ 1 | subject)
 summary(f1)
-fixed(f1)
+data.frame(fixed(f1))["Days","dist.pvalue"]
 #######################################################
 directory_path <-   "~/scratch/dataset/new_sim/nbmm_mod/"
 
@@ -36,6 +36,12 @@ grouptreat <- grep("grouptreat", rownames(df), value = TRUE)
 
 res   =  df[grouptreat, ]
 
+# The first model:
+f2 = mms(y = Romero$OTU, fixed = ~  Days + Age + Race + preg + offset(log(N)), 
+         random = ~ 1 | subject, data = Romero$SampleData,
+         min.p = 0.2, method = "nb")
+
+fixed(f2)
 #nsim  =   length(mod$fit)
 
 
@@ -48,6 +54,9 @@ res   =  df[grouptreat, ]
 #      return(NA)
 #    })
 #  }
+ff = readRDS("~/Downloads/f2.rds")
+fixed(ff)
 
+saveRDS(f2,file= "~/Downloads/f2.rds")
 #names(res)  =  names(mod$fit)
 saveRDS(res, file = paste0("~/scratch/dataset/new_sim/nbmm_pval/pval",i,".rds" ))
