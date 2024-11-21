@@ -6,7 +6,9 @@ gam_fit <- function(pvalue, effect_size, mean_count,
   comb      =   tibble(lmean_count  =  log(mean_count),
                        abs_lfc      =  abs(effect_size),
                        pval_reject  =  as.numeric(pval_reject))
-  
+
+ 
+  print(comb)  
   #fit scams
   fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc, bs="tedmi"),
                          data = comb, family = binomial)

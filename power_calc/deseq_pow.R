@@ -20,16 +20,16 @@ for (params in parameter_sets) {
   ntaxa <- params$ntaxa
 
   # Set file paths
-  path <- paste0("/project/6006158/agronahm/reduced_rank_mm/", nsubj, "_", ntaxa, "/")
-   pvalue      =   readRDS(paste0(path,"/pvalues/deseq.rds"))
-   pvalue      =   rowMeans(pvalue)
+  path <- paste0("/project/6006158/agronahm/reduced_rank_mm/", nsubj, "_", ntaxa)
+  pvalue      =   readRDS(paste0(path,"/pvalues/deseq.rds"))
+  pvalue      =   rowMeans(pvalue)
 ####################################################################
-data        =   readRDS(paste0(path,"/otu_meta_list_withzi_taxa.rds"))
-effect      =   readRDS(paste0(path,"/true_param.rds"))
-effect_size =   effect$true_param
-mean_count  =   colMeans(do.call(rbind,lapply(data, function(x) (x$countdata))))
+  data        =   readRDS(paste0(path,"/otu_meta_list_withzi_taxa.rds"))
+  effect      =   readRDS(paste0(path,"/true_param.rds"))
+  effect_size =   effect$true_param
+  mean_count  =   colMeans(do.call(rbind,lapply(data, function(x) (x$countdata))))
 
-saveRDS(mean_count, file = paste0(path, "/mean_count.rds"))
+  saveRDS(mean_count, file = paste0(path, "/mean_count.rds"))
 ############################################################
 mod    =  gam_fit(pvalue, effect_size, mean_count,grid_len = 500,alpha_level = 0.05)
 
