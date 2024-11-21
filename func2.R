@@ -7,12 +7,11 @@ gam_fit <- function(pvalue, effect_size, mean_count,
                        abs_lfc      =  abs(effect_size),
                        pval_reject  =  as.numeric(pval_reject))
 
- 
-  print(comb)  
+
   #fit scams
   fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc, bs="tedmi"),
                          data = comb, family = binomial)
-  
+
   pp   =   with(comb,
                 expand.grid(lmean_count = seq(min(lmean_count),
                                               max(lmean_count),

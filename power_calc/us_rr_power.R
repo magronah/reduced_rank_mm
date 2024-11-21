@@ -15,9 +15,9 @@ source("initial_param0.R")
 
 # Define sets of nsubj and ntaxa
 parameter_sets <- list(
-  #list(nsubj = 50, ntaxa = 200),
- # list(nsubj = 100, ntaxa = 300),
-  list(nsubj = 150, ntaxa = 500)
+  #list(nsubj = 50, ntaxa = 200)
+ list(nsubj = 100, ntaxa = 300)
+ # list(nsubj = 150, ntaxa = 500)
 )
 
 
@@ -34,61 +34,46 @@ for (params in parameter_sets) {
   
   # Load data and extract parameters
   dd <- load_data(path)
-  
   effect_size <- dd$dd$true_param$true_param
- # pval_data <- dd$dd[c("rr", "rrzi", "us", "uszi")]
+  pval_data <- dd$dd[c("rr", "rrzi", "us", "uszi")]
  
-  pval_data <- dd$dd[c("rr", "rrzi", "us")]
-  
   # Compute p-values for all models
   pvals <- lapply(pval_data, pvalue_cal)
-  names(pvals) <- c("rr", "rrzi", "us")
-
- # names(pvals) <- c("rr", "rrzi", "us", "uszi")
+  names(pvals) <- c("rr", "rrzi", "us", "uszi")
   
   # Read mean count data
   mean_count <- readRDS(paste0(path, "mean_count.rds"))
- # ddl[[i]]  =  lst(pvals,mean_count,effect_size) 
- # i  = i + 1 
 
   # Fit GAM models for each p-value set
   models <- lapply(pvals, gam_fit, effect_size, mean_count, grid_len = 500, alpha_level = 0.05)
-  #models[[1]] <- gam_fit(pvals[[1]], effect_size, mean_count, grid_len = 500, alpha_level = 0.05)
-  #models[[2]] <- gam_fit(pvals[[2]], effect_size, mean_count, grid_len = 500, alpha_level = 0.05)
-  #models[[3]] <- gam_fit(pvals[[3]], effect_size, mean_count, grid_len = 500, alpha_level = 0.05)
-  #models[[4]] <- gam_fit(pvals[[4]], effect_size, mean_count, grid_len = 500, alpha_level = 0.05)
-
- # models <- lapply(pvals, gam_fit, effect_size, mean_count, grid_len = 500, alpha_level = 0.05)
-  names(models) <- c("rr", "rrzi", "us")
-
- # names(models) <- c("rr", "rrzi", "us", "uszi")
+  names(models) <- c("rr", "rrzi", "us", "uszi")
   
-  # Create output directory if it doesn't exist
-  file_path <- paste0(path, "GAM/")
-  if (!dir.exists(file_path)) {
-    dir.create(file_path, recursive = TRUE)
-    cat("Folder created at:", file_path, "\n")
-  } else {
-    cat("Folder already exists at:", file_path, "\n")
-  }
-  
-  # Save models
-  lapply(names(models), function(name) {
-    saveRDS(models[[name]], file = paste0(file_path, name, ".rds"))
-  })
-  
-  # Create output directory if it doesn't exist
-  file_path2 <- paste0(path, "pvalues/")
-  if (!dir.exists(file_path2)) {
-    dir.create(file_path2, recursive = TRUE)
-    cat("Folder created at:", file_path2, "\n")
-  } else {
-    cat("Folder already exists at:", file_path2, "\n")
-  }
-  
-  # Save pvalues
-  lapply(names(pvals), function(name) {
-    saveRDS(pvals[[name]], file = paste0(file_path2, name, ".rds"))
-  })
+  # # Create output directory if it doesn't exist
+  # file_path <- paste0(path, "GAM/")
+  # if (!dir.exists(file_path)) {
+  #   dir.create(file_path, recursive = TRUE)
+  #   cat("Folder created at:", file_path, "\n")
+  # } else {
+  #   cat("Folder already exists at:", file_path, "\n")
+  # }
+  # 
+  # # Save models
+  # lapply(names(models), function(name) {
+  #   saveRDS(models[[name]], file = paste0(file_path, name, ".rds"))
+  # })
+  # 
+  # # Create output directory if it doesn't exist
+  # file_path2 <- paste0(path, "pvalues/")
+  # if (!dir.exists(file_path2)) {
+  #   dir.create(file_path2, recursive = TRUE)
+  #   cat("Folder created at:", file_path2, "\n")
+  # } else {
+  #   cat("Folder already exists at:", file_path2, "\n")
+  # }
+  # 
+  # # Save pvalues
+  # lapply(names(pvals), function(name) {
+  #   saveRDS(pvals[[name]], file = paste0(file_path2, name, ".rds"))
+  # })
 }
 
