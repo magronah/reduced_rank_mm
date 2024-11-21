@@ -15,6 +15,6 @@ dd =  as.data.frame(res)
 saveRDS(dd, file = paste0(getwd(), "/reproducible/simp_single/data/wald_conf.rds"))
 
 
-
+###
 
 
