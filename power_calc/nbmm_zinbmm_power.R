@@ -2,12 +2,13 @@ library(foreach)
 library(NBZIMM)
 ###############################################################
 source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
+source("/project/6006158/agronahm/reduced_rank_mm/power_calc/nbzimm_pack.R")
 
 # Define sets of nsubj and ntaxa
 parameter_sets <- list(
-  list(nsubj = 50, ntaxa = 200),
-  list(nsubj = 100, ntaxa = 300),
-  list(nsubj = 150, ntaxa = 500)
+  list(nsubj = 50, ntaxa = 200)
+ # list(nsubj = 100, ntaxa = 300),
+ # list(nsubj = 150, ntaxa = 500)
 )
 
 
@@ -23,11 +24,12 @@ for (params in parameter_sets) {
     files   =   list.files(path, full.names = TRUE)
     
     res    =  foreach(i = files, .combine = "cbind", .packages = "dplyr") %do% {
-              mod   =  readRDS(i)
+              mod  =  readRDS(i) 
               rs   =  as.data.frame(fixed(mod))
+              #print("yes2")
               pr <- rs %>% 
               filter(grepl("grouptreat", rownames(rs)))
-              pr$dist.padj
+              pr[["dist.padj"]]
     }
     dd            =    as.data.frame(res)
     colnames(dd)  =    paste0("nsim", 1:ncol(dd))
@@ -45,7 +47,9 @@ for (params in parameter_sets) {
     }
     
     saveRDS(dd, file = paste0(file_path,name,".rds"))
+    print(name)
   }
+
 
 }
 
