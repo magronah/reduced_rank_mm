@@ -107,4 +107,5 @@ ztaxa_res_dd2   =  otu_meta_lst_fun(ztaxa_res_dd1)
 saveRDS(ztaxa_res_dd1, file = paste0(path,"sim_count_list_withzi_taxa.rds"))
 saveRDS(ztaxa_res_dd2, file = paste0(path,"otu_meta_list_withzi_taxa.rds"))
 
-
+mean_count  =   colMeans(do.call(rbind,lapply(ztaxa_res_dd2, function(x) (x$countdata))))
+saveRDS(mean_count, file = paste0(path, "mean_count.rds"))
