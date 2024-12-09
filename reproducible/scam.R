@@ -5,7 +5,8 @@ library(tidyverse)
 library(here)
 library(gratia)
 library(patchwork)
-
+library(mgcv)
+library(UniIsoRegression)
 source("reproducible/func.R")
 ############################################
 nsubj = 150; ntaxa = 500 
@@ -64,7 +65,7 @@ gg3 <- gg0 + geom_point(aes(colour = factor(pval_rrzi_reject),
 ## fit GAM - results look reasonable?
 myfit = mgcv::gam(pval_reject ~ te(log(mean_count), abs(effect_size), bs="cr"),
                   data = dd, family = binomial)
-gratia:draw(myfit)
+gratia::draw(myfit)
 
 ## tedmi = double monotone increasing -- seems plausible
 
@@ -104,9 +105,33 @@ mod_rrzi  <- gam_fit(pvals[["rrzi"]], effect_size,
 mod_us    <- gam_fit(pvals[["us"]], effect_size, 
                      mean_count, alpha_level = 0.05)   # no error
 
+#debug("scam")
 mod_uszi  <- gam_fit(pvals[["uszi"]], effect_size, 
                      mean_count, alpha_level = 0.05)
 
+mmod= (mod_uszi$fit_2d)
+names(mod_uszi)
+combined_data = mod_uszi$combined_data
+power_estimate = mod_uszi$power_estimate
+
+library(metR)
+cont_breaks  = seq(0,1,0.01)
+gg_2dimc <- (ggplot(combined_data)
+             + aes(lmean_count, abs_lfc)
+             + (geom_point(aes(color = pval_reject), alpha = 0.5))
+             #+ xlab(TeX("$\\log_2$(mean counts)")) 
+             #+ ylab(TeX("|$\\log_2$(fold change)|")) 
+             + scale_colour_manual(values = c("black", "red"))
+             + geom_contour(data = power_estimate,
+                            aes(z=power),lwd=1,
+                            breaks = cont_breaks)
+             + geom_label_contour(data = power_estimate, 
+                                  aes(z= power,label = sprintf("%.3f", after_stat(level))),
+                                  breaks = cont_breaks
+             )
+             
+)
+gg_2dimc
 
 #######################################################
 any(is.na(pvals[["uszi"]]))
