@@ -23,5 +23,5 @@ module load r/4.4.0
 
 # Run R script with array index as argument
 
-Rscript nbmm.R $SLURM_ARRAY_TASK_ID
+Rscript zinbmm.R $SLURM_ARRAY_TASK_ID
 

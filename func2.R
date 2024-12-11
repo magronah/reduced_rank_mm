@@ -298,7 +298,8 @@ get_theta_corrRR <- function(d, n, logsdvec) {
 deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
                      minReplicatesForReplace = Inf, 
                      cooksCutoff = FALSE,
-                     independentFiltering = FALSE, 
+                     independentFiltering = FALSE,
+                     do_shrinkage =  "yes",  
                      shrinkage_method="normal"){
   
   #check otu table is in otu by samples format
@@ -321,14 +322,18 @@ deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
   res <- results(dds, cooksCutoff=cooksCutoff, 
                  independentFiltering=independentFiltering,
                  alpha = alpha_level)
-  
-  reslt <- lfcShrink(dds, res=res, coef=2, type=shrinkage_method)
+  if(do_shrinkage == "no"){
+    reslt   <-   res
+   }else{
+      reslt <- lfcShrink(dds, res=res, coef=2, type=shrinkage_method)
+   }
   
   deseq_est = data.frame(reslt)
   deseq_est$dispersion = dispersions(dds)
   deseq_dd   =  deseq_est  %>% 
     rownames_to_column(var = "param_name")
   deseq_dd
+
 }
 
 # extract otu table and metadata
