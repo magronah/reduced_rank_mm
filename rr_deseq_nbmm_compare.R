@@ -7,7 +7,7 @@ source("func2.R")
 fig_path=   paste0(getwd(), "fig/")
 #####################################################
 path1   =   paste0(getwd(),"/50_200_previous_500sim/")
-# path1   =   paste0(getwd(),"/50_200/")
+path1   =   paste0(getwd(),"/50_200/")
 path2   =   paste0(getwd(),"/100_300/")
 path3   =   paste0(getwd(),"/150_500/")
 #####################################################
@@ -24,13 +24,17 @@ pp2     =   do.call(rbind,dd2[["confint"]]) %>%
 pp3     =   do.call(rbind,dd3[["confint"]]) %>% 
               arrange(true_param)
 
-
+names(pp1)
 mod <- c("rr","nbmm")
+pp11  = pp1  %>%
+        mutate(lwr2 = lwr - average_estimate,
+               upr2 = upr - average_estimate)
 
-ggplot(pp1 %>% filter(model %in% mod) , aes(y= param_name, color = model)) +
+ggplot(pp11 %>% filter(model %in% mod) , aes(y= param_name, color = model)) +
   #geom_text(aes(x=upr,label=upr,color=model),size=2, hjust=-0.4,vjust=-0.9, show.legend = FALSE)+
   #geom_text(aes(x=lwr,label=lwr,color=model),size=2, hjust=1.2,vjust=-0.9, show.legend = FALSE)+
-  geom_errorbarh(aes(xmin=lwr,xmax=upr,color=model),height=4)+
+  geom_errorbarh(aes(xmin=lwr2,xmax=upr2,color=model),height=4)+
+  facet_wrap(~model) +
   #geom_point() +
   #geom_line() +
   theme_bw()
@@ -99,7 +103,29 @@ oka_col = c(
   #"#0072B2", # Blue
 )
 
-g1=ggplot(bias11, aes(x =  type, y = average_value, 
+mse222 = mse2[mse2$model %in% c("rrzi", "deseq", "zinbmm", "nbmm"), ]
+rrzi_value <- mse222$average_value[mse222$model == "rrzi"]
+
+mse222$percentage_change <- ((mse222$average_value - rrzi_value) / rrzi_value) * 100
+
+mse222$model <- factor(mse222$model, levels = c("rrzi", "deseq", "zinbmm", "nbmm"))
+
+g1 <- ggplot(mse222, aes(x = model, y = average_value, color = model)) +
+  geom_point(size = 3) +  # Increase point size
+  geom_hline(yintercept = rrzi_value, linetype = "dashed", color = "black", 
+             linewidth= 1.2) +  # Increase line thickness
+  scale_color_manual(values = oka_col) +
+  ylab("average value across taxa") +
+  custom_theme(n) +
+  labs(color = "model") +
+  theme(axis.title.x = element_blank())
+
+g1
+
+
+
+
+g1=ggplot(mse33, aes(x =  type, y = average_value, 
                          color = factor(model, levels = unique(model)))) +
   geom_point() +
   scale_color_manual(values = oka_col) +
@@ -112,6 +138,7 @@ g1
 
 dim(dd1$dd$rr)
 x11()
+
 
 
 g2 =  ggplot(bias_dd, aes(x =  type, y = average_value,  color =model)) +

@@ -10,8 +10,14 @@ gam_fit <- function(pvalue, effect_size, mean_count,
   
   
   #fit scams
-  fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc, bs="tedmi"),
+  fit_2d       =    mgcv::gam(pval_reject ~ te(lmean_count, abs_lfc),
                          data = comb, family = binomial)
+  # fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc, bs="tedmi"),
+  #                        data = comb, family = binomial,
+  #                        control = list(trace = TRUE, print.warn = TRUE,
+  #                                       devtol.fit = 1e-2,
+  #                                       steptol.fit = 1e-2,
+  #                                       maxit = 1000))
   
   pp   =   with(comb,
                 expand.grid(lmean_count = seq(min(lmean_count),
