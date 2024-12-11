@@ -86,8 +86,11 @@ Bayes_Reg_Microbime1 =  function (hpara, Dat, n_burn, n_sam)
   return(Save_MCMC_sam)
 }
 
+names(SIM_dat)
 MCMC_sam <- Bayes_Reg_Microbime1(hyper, SIM_dat, NN_Burn, NN_sam)
 names(MCMC_sam)
+
+class(SIM_dat$Z_1)
 ## SAVED MCMC SAMPLES
 #> names(MCMC_sam)
 #[1] "beta"    "phi"     "s"       "r"       "th0"     "th"      "sig2"
