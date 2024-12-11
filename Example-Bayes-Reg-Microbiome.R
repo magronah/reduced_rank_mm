@@ -1,5 +1,5 @@
 #############################################################################
-rm(list=ls(all=TRUE))
+#rm(list=ls(all=TRUE))
 set.seed(79861)
 library(lattice)
 library(nlme)
@@ -21,12 +21,11 @@ library(BayesRegMicrobiome)
 load("SIM_dat.RData")
 View(SIM_dat$Y)
 ## SIM_dat
-View(SIM_dat)
 #> names(SIM_dat)
 #[1] "rep_K"        "Tot_N"        "n"            "P"            "J"
 #[6] "Z"            "Z_1"          "Y"            "max_cat"      "Miss_ind"
 #[11] "miss_cov_ind"
-View(SIM_dat$Z)
+
 # n: the number of time points, t_i \in [0, T], i=1, ..., n
 # rep_K (K_i): n-dim vector, the number of replicates at time point t_i
 # Tot_N = \sum_i K_i: the total # of samples
@@ -38,9 +37,12 @@ View(SIM_dat$Z)
 # max_cat: # of max categories for discrete covariates, -1 for continuous.  The method can impute missing *discrete* covaraites.
 # Miss_ind: indicator of where a covariate is missing at any of n time points (any missing: 1, none missing: 0)   -- (n*(P+2)) matrix where columns 1 and 2 are i and t, respectively, and the remaining columns are Z
 
-max(SIM_dat$Z_1[,2])
+SIM_dat$Z_1[,2]  = 1
 ### specify fixed hyperparmeters
 hyper <- fn.hyper(SIM_dat$Y, SIM_dat$Tot_N, SIM_dat$Z_1[,2], max(SIM_dat$Z_1[,2]), SIM_dat$P, SIM_dat$J)
+
+hyper <- fn.hyper(SIM_dat$Y, SIM_dat$Tot_N, SIM_dat$Z_1[,2], max(SIM_dat$Z_1[,2]), SIM_dat$P, SIM_dat$J)
+
 
 #> names(hyper)
 #[1] "a_s"    "b_s"    "L"      "u2"     "c_r"    "a_w"    "b_w"    "v2_eta"
@@ -58,14 +60,21 @@ hyper <- fn.hyper(SIM_dat$Y, SIM_dat$Tot_N, SIM_dat$Z_1[,2], max(SIM_dat$Z_1[,2]
 # gam2: the fixed parameter for the kernel
 # K: a matrix of Z(t_i - u_m)
 # tau2_j \iid IG(a_tau, b_tau)
-dim(SIM_dat$Z)
-load(Dat)
+
+
 ###  MCMC parameters
 NN_Burn <- 10  ## No of iterations for Burn-in period
 NN_sam <- 100  ## Posterior sample size
 Bayes_Reg_Microbime1 =  function (hpara, Dat, n_burn, n_sam) 
 {
+  # Dat$Y  otu table
   View(Dat$Z_1)
+  View(Dat$P)
+  View(Dat$Tot_N)
+  # Dat$Tot_N number of subjects 
+  # Dat$J  number of taxa 
+  # Dat$Z_1 in my case Z_1, index, subject and group
+  
   ini_sam <- fn.initialize(hpara, Dat$Y, Dat$Z_1, Dat$Tot_N, 
                            Dat$P, Dat$J)
   print(date())
@@ -78,13 +87,12 @@ Bayes_Reg_Microbime1 =  function (hpara, Dat, n_burn, n_sam)
 }
 
 MCMC_sam <- Bayes_Reg_Microbime1(hyper, SIM_dat, NN_Burn, NN_sam)
-
+names(MCMC_sam)
 ## SAVED MCMC SAMPLES
 #> names(MCMC_sam)
 #[1] "beta"    "phi"     "s"       "r"       "th0"     "th"      "sig2"
 #[8] "tau2"    "lam2"    "Z_1_cov"
 
-View(MCMC_sam)
 # beta: P*J*N_sam matrix of posterior samples of size N_sam for beta_{jp}, j=1, ..., J, and p=1, ..., P
 # phi: P*J*N_sam matrix of posterior samples of size N_sam for phi_{jp}, j=1, ..., J, and p=1, ..., P
 # s: J*N_sam matrix of posterior samples of size N_sam for s_{j}, j=1, ..., J
