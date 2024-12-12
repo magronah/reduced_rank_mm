@@ -19,16 +19,6 @@ Type 'q()' to quit R.
 
 [Previously saved workspace restored]
 
-During startup - Warning messages:
-1: In checkMatrixPackageVersion(getOption("TMB.check.Matrix", TRUE)) :
-  Package version inconsistency detected.
-TMB was built with Matrix ABI version 1
-Current Matrix ABI version is 2
-Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package
-2: In check_dep_version() : ABI version mismatch: 
-lme4 was built with Matrix ABI version 1
-Current Matrix ABI version is 2
-Please re-install lme4 from source or restore original ‘Matrix’ package
 > library(foreach)
 > library(huge)
 > library(glmmTMB)
@@ -40,7 +30,7 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > 
 > path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/rrzi")
 > path
-[1] "~/scratch/dataset/RR/50_200/rrzi"
+[1] "~/scratch/dataset/RR/100_300/rrzi"
 > ##########################################################
 > files <-   list.files(path, full.names = TRUE)
 > 
@@ -58,4 +48,4 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > 
 > proc.time()
    user  system elapsed 
- 37.540  12.660 129.105 
+216.781 150.702 503.414 
