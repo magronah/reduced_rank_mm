@@ -18,7 +18,7 @@ dd      =   data[[i]]
 countdata  =   dd$countdata
 met_dd     =   dd$met_data
 
-res        =   deseqfun(countdata,met_dd,ref_name="control")
+res        =   deseqfun(countdata,met_dd,ref_name="control",do_shrinkage =  "no")
 
 file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","deseq_noShrink/")
 

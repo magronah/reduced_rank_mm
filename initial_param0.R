@@ -1,4 +1,4 @@
-seed = 101; ntaxa = 200; nsubj = 70; beta = 3; betadisp = 0 
+seed = 101; ntaxa = 300; nsubj = 100; beta = 3; betadisp = 0 
 #betazi = -2
 nsim =  500 ; n_gt = 2
 
