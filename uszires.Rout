@@ -30,7 +30,7 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > ############################################################
 > path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/uszi")
 > path
-[1] "~/scratch/dataset/RR/100_300/uszi"
+[1] "~/scratch/dataset/RR/70_200/uszi"
 > 
 > files <-   list.files(path, full.names = TRUE)
 > 
@@ -48,4 +48,4 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > 
 > proc.time()
    user  system elapsed 
- 38.415   9.091 126.299 
+ 27.096   2.347 225.594 
