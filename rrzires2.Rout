@@ -27,27 +27,31 @@ Type 'q()' to quit R.
 > source("initial_param0.R")
 Generating data from the multivariate normal distribution with the scale-free graph structure....done.
 Generating data from the multivariate normal distribution with the scale-free graph structure....done.
-> ############################################################
-> path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/rr")
-> path
-[1] "~/scratch/dataset/RR/200_600/rr"
 > 
+> path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/rrzi")
+> path
+[1] "~/scratch/dataset/RR/200_600/rrzi"
+> ##########################################################
 > files <-   list.files(path, full.names = TRUE)
 > 
 > res = foreach(i = files, .combine ="cbind") %do% {
++       tryCatch({
 +     mod  =   readRDS(i)
 +     dd   =  (ranef(mod,condVar = FALSE)$cond$taxon$grouptreat)
-+     dd 
++     dd}, error = function(e) {
++     message("Error in file: ", i, " - ", e)
++     NULL
++   })
 + }
-> 
+Error in file: /home/agronahm/scratch/dataset/RR/200_600/rrzi/mod229.rds - Error in readRDS(i): error reading from connection
+
 > 
 > dd            =  as.data.frame(res)
 > rownames(dd)  =  paste0("taxon",1:nrow(dd))
 > colnames(dd)  =  paste0("sim",1:ncol(dd))
-> saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"/rr.rds"))
 > 
-> 
+> saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"/rrzi.rds"))
 > 
 > proc.time()
     user   system  elapsed 
- 779.262 1319.884 2595.102 
+ 903.256 1062.640 2430.536 

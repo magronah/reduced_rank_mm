@@ -11,9 +11,13 @@ path
 files <-   list.files(path, full.names = TRUE)
 
 res = foreach(i = files, .combine ="cbind") %do% {
+      tryCatch({
     mod  =   readRDS(i)
     dd   =  (ranef(mod,condVar = FALSE)$cond$taxon$grouptreat)
-    dd
+    dd}, error = function(e) {
+    message("Error in file: ", i, " - ", e)
+    NULL
+  })
 }
 
 dd            =  as.data.frame(res)

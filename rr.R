@@ -36,24 +36,19 @@ par_ctrl <- glmmTMBControl(
   options(glmmTMB_openmp_debug = TRUE)
   blas_set_num_threads(1)
 
-#fit <- tryCatch({
-#system.time(
-  mod   =   glmmTMB(form2, data = df,
+mod  <- tryCatch({
+       glmmTMB(form2, data = df,
                      family  = nbinom2,
                      prior   = gprior,
                      REML    = TRUE,
                      control = par_ctrl)
-#)
-
-#}, error = function(e) {
-#     message("Error in first attempt, trying again without prior...")
-# mod = system.time(
-#       glmmTMB(form2, data = df,
-#                     family  = nbinom2,
-#                     REML    = TRUE,
-#                     control = par_ctrl)
-#  )
-#})
+}, error = function(e) {
+     message("Error in first attempt, trying again without prior...")
+       glmmTMB(form2, data = df,
+                     family  = nbinom2,
+                     REML    = TRUE,
+                     control = par_ctrl)
+})
 
 
 file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","rr/")
