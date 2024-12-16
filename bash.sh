@@ -15,4 +15,4 @@
 
 module load r/4.4.0
 
-R CMD BATCH deseq_noShrinkres.R  deseq_noShrinkres.Rout
+R CMD BATCH zinbmmres.R  zinbmmres.Rout

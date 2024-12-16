@@ -15,9 +15,9 @@ source("/project/6006158/agronahm/reduced_rank_mm/initial_param0.R")
 
 # Define sets of nsubj and ntaxa
 parameter_sets <- list(
-  #list(nsubj = 50, ntaxa = 200)
-# list(nsubj = 100, ntaxa = 300)
-  list(nsubj = 150, ntaxa = 500)
+ list(nsubj = 100, ntaxa = 300)
+# list(nsubj = 150, ntaxa = 500)
+ # list(nsubj = 200, ntaxa = 600)
 )
 
 
@@ -34,21 +34,18 @@ for (params in parameter_sets) {
   # Load data and extract parameters
   dd <- load_data(path)
   effect_size <- dd$dd$true_param$true_param
-  pval_data <- dd$dd[c("rr")]
-     #, "rrzi", "us", "uszi")]
+  pval_data <- dd$dd[c("rr", "rrzi", "us", "uszi")]
  
   # Compute p-values for all models
   pvals <- lapply(pval_data, pvalue_cal)
-  names(pvals) <- c("rr")
-   #, "rrzi", "us", "uszi")
+  names(pvals) <- c("rr","rrzi", "us", "uszi")
   
   # Read mean count data
   mean_count <- readRDS(paste0(path, "mean_count.rds"))
 
   # Fit GAM models for each p-value set
   models <- lapply(pvals, gam_fit, effect_size, mean_count, grid_len = 500, alpha_level = 0.05)
-  names(models) <- c("rr")
-   #, "rrzi", "us", "uszi")
+  names(models) <- c("rr","rrzi", "us", "uszi")
   
   # # Create output directory if it doesn't exist
   file_path <- paste0(path, "GAM/")

@@ -18,7 +18,6 @@ res   = foreach(i = files,.combine = "cbind",.packages = "NBZIMM") %do% {
      pp[(pp$variables) == "grouptreat",][["Estimate"]]
 }
 dd    =   as.data.frame(res)
-print(dd)
 rownames(dd)  =  paste0("taxon",1:ntaxa)
 colnames(dd)  =    paste0("nsim",1:ncol(dd))
 saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"/nbmm.rds"))

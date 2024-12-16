@@ -19,7 +19,5 @@ res   = foreach(i = files,.combine = "cbind",.packages = "NBZIMM") %do% {
 }
 dd    =   as.data.frame(res)
 rownames(dd)  =	 paste0("taxon",1:ntaxa)
-
-print(dd)
 colnames(dd)  =    paste0("nsim",1:ncol(dd))
 saveRDS(dd, file = paste0(getwd(),"/",nsubj,"_",ntaxa,"/zinbmm.rds"))

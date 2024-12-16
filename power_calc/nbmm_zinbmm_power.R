@@ -1,14 +1,15 @@
 library(foreach)
 library(NBZIMM)
+library(MASS)
+library(nlme)
 ###############################################################
 source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
-source("/project/6006158/agronahm/reduced_rank_mm/power_calc/nbzimm_pack.R")
 
 # Define sets of nsubj and ntaxa
 parameter_sets <- list(
- # list(nsubj = 50, ntaxa = 200)
  list(nsubj = 100, ntaxa = 300),
- list(nsubj = 150, ntaxa = 500)
+ list(nsubj = 150, ntaxa = 500),
+ list(nsubj = 200, ntaxa = 600)
 )
 
 
@@ -18,15 +19,15 @@ for (params in parameter_sets) {
   ntaxa <- params$ntaxa
   
  # mod_type = c("nbmm", "zinbmm")
-  
-  #for(name in mod_type){
-    path    =   paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/nbmm")
+  nam    = "nbmm"
+  #for(nam in mod_type){
+    path    =   paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/",nam)
     files   =   list.files(path, full.names = TRUE)
     
     res    =  foreach(i = files, .combine = "cbind", .packages = "dplyr") %do% {
               mod  =  readRDS(i) 
               rs   =  as.data.frame(fixed(mod))
-              #print("yes2")
+              
               pr <- rs %>% 
               filter(grepl("grouptreat", rownames(rs)))
               pr[["dist.padj"]]
@@ -46,8 +47,8 @@ for (params in parameter_sets) {
       cat("Folder already exists at:", file_path, "\n")
     }
     
-    saveRDS(dd, file = paste0(file_path,"nbmm.rds"))
-    #print(name)
+    saveRDS(dd, file = paste0(file_path,nam,".rds"))
+    print(nam)
   #}
 
 
