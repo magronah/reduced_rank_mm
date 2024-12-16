@@ -139,25 +139,31 @@ load_data <- function(path, alpha = 0.05) {
   rrzi   =  readRDS(paste0(path, "rrzi.rds"))
   us     =  readRDS(paste0(path, "us.rds"))
   uszi   =  readRDS(paste0(path, "uszi.rds"))
-deseqL2  =  readRDS(paste0(path, "deseq.rds"))
-  deseq  =    deseqL2*log(2)
   nbmm   =  readRDS(paste0(path, "nbmm.rds"))
-  rownames(nbmm) = paste0("taxon",1:nrow(nbmm))
   zinbmm =  readRDS(paste0(path, "zinbmm.rds"))
-  rownames(zinbmm) = paste0("taxon",1:nrow(zinbmm))
+  
+deseqL2  =  readRDS(paste0(path, "deseq.rds"))
+deseq_noShrinkL2  =  readRDS(paste0(path, "deseq_noShrink.rds"))
+
+  deseq  =    deseqL2*log(2)
+  deseq_noShrink  =    deseq_noShrinkL2*log(2)
+
   ####################################################
   rrl    =   dd_long(rr,   true_param,label="rr")
   rrzil  =   dd_long(rrzi, true_param,label="rrzi")
   usl    =   dd_long(us,  true_param,label="us")
   uszil  =   dd_long(uszi, true_param,label="uszi")
   deseql =   dd_long(deseq, true_param,label="deseq")
+  deseq_noShrinkl =   dd_long(deseq_noShrink, true_param,label="deseq_noShrink")
+  
   nbmml  =   dd_long(nbmm,  true_param,label="nbmm")
  zinbmml =   dd_long(zinbmm, true_param,label="zinbmm")
   ####################################################
- dd = lst(true_param,rr, rrzi, us, uszi, deseq, nbmm, zinbmm)
+ dd = lst(true_param,rr, rrzi, us, uszi, deseq, deseq_noShrink, nbmm, zinbmm)
   ##convert to long format
  long_dd = list(rr = rrl, rrzi = rrzil, us = usl, 
-                uszi =  uszil, deseq  =  deseql, 
+                uszi =  uszil, deseq  =  deseql,
+                deseq_noShrink  =  deseq_noShrinkl,
                 nbmm  = nbmml, zinbmm  = zinbmml)
 
   confint = list(
@@ -166,6 +172,7 @@ deseqL2  =  readRDS(paste0(path, "deseq.rds"))
     us      =   para_confint(usl, true_param, alpha = alpha),
     uszi    =   para_confint(uszil, true_param, alpha = alpha),
     deseq   =   para_confint(deseql, true_param, alpha = alpha),
+    deseq_noShrink   =   para_confint(deseq_noShrinkl, true_param, alpha = alpha),
     nbmm    =   para_confint(nbmml, true_param, alpha = alpha),
     zinbmm  =   para_confint(zinbmml, true_param, alpha = alpha)
   ) 
@@ -177,6 +184,7 @@ deseqL2  =  readRDS(paste0(path, "deseq.rds"))
     us      =   error_cal(us, true_param, model = "us"),
     uszi    =   error_cal(uszi, true_param, model = "uszi"),
     deseq   =   error_cal(deseq, true_param, model = "deseq"),
+    deseq_noShrink   =   error_cal(deseq_noShrink, true_param, model = "deseq_noShrink"),
     nbmm    =   error_cal(nbmm, true_param, model = "nbmm"),
     zinbmm  =   error_cal(zinbmm, true_param, model = "zinbmm")
   ) 
@@ -200,7 +208,7 @@ error_cal <- function(model_est_dd, true_param_dd, model) {
                            mse         =   rowMeans(error^2))
   
   df2     =    data.frame(average_value  =   mean(rowMeans(error)))
-  df3     =    data.frame(average_value  =   mean(rowMeans(error^2)))
+  df3     =    data.frame(average_value  =   mean(sqrt(rowMeans(error^2))))
   
   df1$model   =  rep(model,nrow(df1)) 
   df2$model   =  rep(model,nrow(df2)) 
@@ -266,8 +274,12 @@ para_confint  = function(est_data, true_dd,  alpha = 0.05){
   ddd      =   left_join(dd, true_dd, by = "param_name")
   
   ddd    =  ddd %>% 
-    mutate(param_name = factor(param_name, 
-                               levels = unique(param_name[order(true_param)])))
+    
+  mutate(
+    param_name = factor(param_name, levels = unique(param_name[order(true_param)])),
+    coverage = ifelse(true_param > lwr & true_param < upr, 1, 0)
+    )
+  ddd$CI_width =   ddd$upr - ddd$lwr
   
   ddd
 }
