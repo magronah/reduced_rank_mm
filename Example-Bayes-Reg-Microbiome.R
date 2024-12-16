@@ -19,6 +19,7 @@ library(BayesRegMicrobiome)
 
 ### load the simulated data for Section 3. Simulation Study
 load("SIM_dat.RData")
+View(SIM_dat)
 View(SIM_dat$Y)
 ## SIM_dat
 #> names(SIM_dat)
@@ -36,14 +37,14 @@ View(SIM_dat$Y)
 # Y: OTU counts (Tot_N*J) matrix
 # max_cat: # of max categories for discrete covariates, -1 for continuous.  The method can impute missing *discrete* covaraites.
 # Miss_ind: indicator of where a covariate is missing at any of n time points (any missing: 1, none missing: 0)   -- (n*(P+2)) matrix where columns 1 and 2 are i and t, respectively, and the remaining columns are Z
-
+View(SIM_dat$Z_1)
 SIM_dat$Z_1[,2]  = 1
 ### specify fixed hyperparmeters
 hyper <- fn.hyper(SIM_dat$Y, SIM_dat$Tot_N, SIM_dat$Z_1[,2], max(SIM_dat$Z_1[,2]), SIM_dat$P, SIM_dat$J)
 
 hyper <- fn.hyper(SIM_dat$Y, SIM_dat$Tot_N, SIM_dat$Z_1[,2], max(SIM_dat$Z_1[,2]), SIM_dat$P, SIM_dat$J)
 
-
+View(SIM_dat)
 #> names(hyper)
 #[1] "a_s"    "b_s"    "L"      "u2"     "c_r"    "a_w"    "b_w"    "v2_eta"
 #[9] "d"      "L_th0"  "u2_th0" "c_th0"  "aw_th0" "bw_th0" "v2_th0" "d_th0"
@@ -87,7 +88,7 @@ Bayes_Reg_Microbime1 =  function (hpara, Dat, n_burn, n_sam)
 }
 
 names(SIM_dat)
-MCMC_sam <- Bayes_Reg_Microbime1(hyper, SIM_dat, NN_Burn, NN_sam)
+MCMC_sam <- Bayes_Reg_Microbime(hyper, SIM_dat, NN_Burn, NN_sam)
 names(MCMC_sam)
 
 class(SIM_dat$Z_1)

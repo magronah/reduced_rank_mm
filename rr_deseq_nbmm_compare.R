@@ -6,6 +6,109 @@ library(patchwork)
 source("func2.R")
 fig_path=   paste0(getwd(), "fig/")
 #####################################################
+####Bias and RMSE calculation
+
+strg  =   c("/100_300/","/150_500/", "/200_600/")
+n = 10; p1  =   p2   =  p3 = list()
+
+for(i in 1:length(strg)){
+  i =1
+  path  =   paste0(getwd(), strg[i])
+  dd    =   load_data(path) 
+  #####################################################
+  mse   =   err_extract(dd, "avg_mse")
+  bias  =   err_extract(dd, "avg_bias")
+  
+  p1[[i]] = ggplot(mse, aes(model, average_value)) +
+    geom_point() +
+    geom_hline(yintercept = mse["rrzi",1], linetype = "dashed", color = "red") +
+    custom_theme(n) +
+    labs(title="Comparison of average RMSE across taxa",x = " ",y = "Average RMSE")
+  
+  p2[[i]] = ggplot(bias, aes(model, average_value)) +
+    geom_point() +
+    geom_hline(yintercept = bias["rrzi",1], linetype = "dashed", color = "red") +
+    custom_theme(n) +
+    labs(title = "Comparison of average bias across taxa",x = " ",y = "Average Bias")
+  
+  
+  #####################################################
+  ####Coverage Calculation 
+  pp       =   do.call(rbind,dd[["confint"]]) %>%  
+    arrange(true_param)  %>%  
+    as.data.frame(row.names = NULL)
+  
+  # Compute the mean of lwr and upr by model type
+  mean_values <- aggregate(cbind(lwr, upr, CI_width,true_param) ~ model, 
+                           data = pp, FUN = mean)
+  
+  # Create the plot
+  ggplot(mean_values, aes(x = model, ymin = lwr, ymax = upr, y = (lwr + upr) / 2)) +
+    geom_pointrange(size = 0.8) +
+    geom_hline(aes(yintercept = true_param), linetype = "dashed", color = "red", size = 1) +
+    labs(
+      title = "Confidence Intervals for Models",
+      x = "Model",
+      y = "Estimate",
+      color = "Model"
+    ) +
+    custom_theme(n) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+    coord_flip()
+  
+  
+  p3[[i]]  = ggplot(mean_values, aes(x = model, y = CI_width)) +
+    geom_point() +
+    custom_theme(n)
+  
+  num_taxa  = nrow(dd$dd$deseq)
+  #####################################################
+  # Sum coverage by model type
+  coverage_dd <- aggregate(coverage ~ model, data = pp, sum)
+  coverage_dd$coverage =  coverage_dd$coverage/num_taxa  
+  
+  
+  p4[[i]]  = ggplot(coverage_dd, aes(x = model, y = coverage)) +
+    geom_point() +
+    custom_theme(n)
+  
+  }
+
+p1[[1]]|p2[[1]]
+
+#205
+ 
+
+
+
+mm = left_join(mean_values, coverage_sum, by = "model")
+
+
+  # Add confidence interval lines
+  
+
+#####################################################
+####Confidence Interval Width
+ggplot(mm, aes(x = model, y = true_param)) +
+  # Add confidence interval lines
+  geom_linerange(aes(ymin = lwr, ymax = upr), color = "blue", size = 1.5) +
+  # Add true parameter line for reference
+  geom_hline(aes(yintercept = true_param), linetype = "dashed", color = "red") +
+  # Add coverage as points, colored based on coverage value
+  geom_point(aes(color = coverage), size = 4) +
+  # Set colors for coverage
+  scale_color_gradient(low = "red", high = "green") +
+  # Rotate x-axis labels for better readability
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  # Add labels and title
+  labs(
+    title = "Model Confidence Intervals and Coverage",
+    x = "Model",
+    y = "True Parameter"
+  ) +
+  theme_minimal()
+
+#####################################################
 path1   =   paste0(getwd(),"/50_200_previous_500sim/")
 path1   =   paste0(getwd(),"/50_200/")
 path2   =   paste0(getwd(),"/100_300/")
@@ -74,6 +177,7 @@ bias33   =   reorganise_dd(bias3, "bias")
 bias33$label  = factor("150 subjects and 500 ntaxa")
 ###################################################
 mse1    =   err_extract(dd1, "avg_mse")
+
 mse11   =   reorganise_dd(mse1, "mse")
 mse11$label  = factor("50 subjects and 200 ntaxa")
 
