@@ -17,8 +17,6 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-[Previously saved workspace restored]
-
 > library(tibble)
 > library(DESeq2)
 Loading required package: S4Vectors
@@ -42,10 +40,6 @@ The following objects are masked from ‘package:base’:
 
 
 Attaching package: ‘S4Vectors’
-
-The following object is masked _by_ ‘.GlobalEnv’:
-
-    metadata
 
 The following object is masked from ‘package:utils’:
 
@@ -118,9 +112,9 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > ############################################################
 > # Define sets of nsubj and ntaxa
 > parameter_sets <- list(
-+   #list(nsubj = 50, ntaxa = 200),
-+   list(nsubj = 100, ntaxa = 300),
-+   list(nsubj = 150, ntaxa = 500)
++   #list(nsubj = 100, ntaxa = 300),
++   #list(nsubj = 150, ntaxa = 500),
++   list(nsubj = 200, ntaxa = 600)
 + )
 > 
 > # Loop through parameter sets
@@ -155,3 +149,8 @@ Generating data from the multivariate normal distribution with the scale-free gr
 +   saveRDS(dd, file = paste0(file_path,"deseq.rds"))
 +   
 + }
+Folder already exists at: /project/6006158/agronahm/reduced_rank_mm/200_600/pvalues/ 
+> 
+> proc.time()
+   user  system elapsed 
+ 14.012   1.712 179.294 
