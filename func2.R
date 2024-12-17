@@ -1,3 +1,35 @@
+## goal: pick 'theta' parameters for a reduced-rank model in a sensible way
+##' @param d rank (dimension)
+##' @param n full dimension (latent variables per group)
+##' @param logsdvec vector of log-SDs of each factor
+get_theta_rr <- function(d, n, logsdvec) {
+  mat <- matrix(0, nrow=n, ncol=d)
+  ## replicate if length-1 ...
+  if (length(logsdvec) == 1) logsdvec <- rep(logsdvec, d)
+  ## otherwise fail
+  stopifnot(length(logsdvec) == d)
+  ## 1. pick values for each column where sum(x^2)==1
+  for (i in 1:d) {
+    ## we don't care about identifiablity here, so we
+    ## can pick as many N(0,1) values as we need and rescale
+    ## (unlike if we were trying to *estimates* these parameters,
+    ##  would need to constrain one value for identifiability,
+    ##  e.g. set the first element to 0 (without loss of generality?)
+    r <- rnorm(n-i+1)
+    rexp <- exp(r)
+    mat[(i:n), i] <- sqrt(rexp/sum(rexp))
+  }
+  mat <- sweep(mat, 2, FUN = "*", exp(logsdvec))
+  ## check consistency (could comment this out)
+  stopifnot(all.equal(sqrt(colSums(mat^2)), exp(logsdvec)))
+  theta <- c(
+    mat[row(mat)==col(mat)],  ## diagonal elements
+    mat[row(mat)>col(mat)]    ## below-diagonal elements
+  )
+  return(theta)
+}
+
+
 gam_fit <- function(pvalue, effect_size, mean_count,
                     grid_len = 100, alpha_level = 0.05){
   

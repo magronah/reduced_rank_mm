@@ -7,17 +7,17 @@ library(foreach)
 library(scam)
 library(tidyverse)
 #############################################
-#source("func2.R")
-#source("initial_param0.R")
+source("func2.R")
+source("initial_param0.R")
 
-source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
-source("/project/6006158/agronahm/reduced_rank_mm/initial_param0.R")
+#source("/project/6006158/agronahm/reduced_rank_mm/func2.R")
+#source("/project/6006158/agronahm/reduced_rank_mm/initial_param0.R")
 
 # Define sets of nsubj and ntaxa
 parameter_sets <- list(
- list(nsubj = 100, ntaxa = 300)
-# list(nsubj = 150, ntaxa = 500)
- # list(nsubj = 200, ntaxa = 600)
+ list(nsubj = 100, ntaxa = 300),
+ list(nsubj = 150, ntaxa = 500),
+ list(nsubj = 200, ntaxa = 600)
 )
 
 
@@ -29,7 +29,8 @@ for (params in parameter_sets) {
   
   
   # Set file paths
-  path <- paste0("/project/6006158/agronahm/reduced_rank_mm/", nsubj, "_", ntaxa, "/")
+  # path <- paste0("/project/6006158/agronahm/reduced_rank_mm/", nsubj, "_", ntaxa, "/")
+  path <- paste0(nsubj, "_", ntaxa, "/")
   
   # Load data and extract parameters
   dd <- load_data(path)
