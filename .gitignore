@@ -44,3 +44,9 @@ heatmap_contour4_png
 !true_param.rds
 !mean_count.rds
 !deseq_noShrink.rds
+!rrref.rds
+!rrziref.rds
+!usref.rds
+!usziref.rds
+!deseqref.rds
+!desesq_noShrinkref.rds
