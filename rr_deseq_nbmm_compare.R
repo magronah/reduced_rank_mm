@@ -7,12 +7,15 @@ source("func2.R")
 fig_path=   paste0(getwd(), "fig/")
 #####################################################
 ####Bias and RMSE calculation
-
 strg  =   c("/100_300/","/150_500/", "/200_600/")
-n = 10; p1  =   p2   =  p3 = list()
+titles  =  c("50 subjects per group and 300 taxa",
+             "75 subjects per group and 500 taxa",
+             "100 subjects per group and 600 taxa")
+
+n = 8; p1  =   p2   =  p3 =  p4  = p5  = list()
 
 for(i in 1:length(strg)){
-  i =1
+  i = 1
   path  =   paste0(getwd(), strg[i])
   dd    =   load_data(path) 
   #####################################################
@@ -23,14 +26,19 @@ for(i in 1:length(strg)){
     geom_point() +
     geom_hline(yintercept = mse["rrzi",1], linetype = "dashed", color = "red") +
     custom_theme(n) +
-    labs(title="Comparison of average RMSE across taxa",x = " ",y = "Average RMSE")
+    labs(title= titles[[i]],
+         y = "Average RMSE across taxa"
+           #"Comparison of average RMSE across taxa",x = " ",y = "Average RMSE"
+         )
   
   p2[[i]] = ggplot(bias, aes(model, average_value)) +
     geom_point() +
     geom_hline(yintercept = bias["rrzi",1], linetype = "dashed", color = "red") +
     custom_theme(n) +
-    labs(title = "Comparison of average bias across taxa",x = " ",y = "Average Bias")
-  
+    labs(title = titles[[i]],
+         y = "Average bias across taxa"
+           #"Comparison of average bias across taxa",x = " ",y = "Average Bias"
+           )
   
   #####################################################
   ####Coverage Calculation 
@@ -43,8 +51,8 @@ for(i in 1:length(strg)){
                            data = pp, FUN = mean)
   
   # Create the plot
-  ggplot(mean_values, aes(x = model, ymin = lwr, ymax = upr, y = (lwr + upr) / 2)) +
-    geom_pointrange(size = 0.8) +
+  p3[[i]]= ggplot(mean_values, aes(x = model, ymin = lwr, ymax = upr, y = (lwr + upr) / 2)) +
+    geom_pointrange(linewidth = 0.8) +
     geom_hline(aes(yintercept = true_param), linetype = "dashed", color = "red", size = 1) +
     labs(
       title = "Confidence Intervals for Models",
@@ -57,8 +65,13 @@ for(i in 1:length(strg)){
     coord_flip()
   
   
-  p3[[i]]  = ggplot(mean_values, aes(x = model, y = CI_width)) +
+  p4[[i]]  = ggplot(mean_values, aes(x = model, y = CI_width)) +
     geom_point() +
+    labs(
+      title = "Confidence Width for Models",
+      x = "Model",
+      y = "Confidence Width",
+    ) +
     custom_theme(n)
   
   num_taxa  = nrow(dd$dd$deseq)
@@ -68,11 +81,15 @@ for(i in 1:length(strg)){
   coverage_dd$coverage =  coverage_dd$coverage/num_taxa  
   
   
-  p4[[i]]  = ggplot(coverage_dd, aes(x = model, y = coverage)) +
+  p5[[i]]  = ggplot(coverage_dd, aes(x = model, y = coverage)) +
     geom_point() +
     custom_theme(n)
   
   }
+
+
+p1[[1]]|p1[[2]]|p1[[3]]
+p2[[1]]|p2[[2]]|p2[[3]]
 
 p1[[1]]|p2[[1]]
 

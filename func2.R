@@ -9,7 +9,10 @@ gam_fit <- function(pvalue, effect_size, mean_count,
 
 
   #fit scams
-  fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc, bs="tedmi"),
+  #fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc, bs="tedmi"),
+  #                       data = comb, family = binomial)
+  
+  fit_2d       =    scam(pval_reject ~ s(lmean_count, abs_lfc),
                          data = comb, family = binomial)
 
   pp   =   with(comb,
@@ -142,6 +145,7 @@ load_data <- function(path, alpha = 0.05) {
   nbmm   =  readRDS(paste0(path, "nbmm.rds"))
   zinbmm =  readRDS(paste0(path, "zinbmm.rds"))
   
+  rownames(nbmm) =   rownames(zinbmm)  =  rownames(rrzi)
 deseqL2  =  readRDS(paste0(path, "deseq.rds"))
 deseq_noShrinkL2  =  readRDS(paste0(path, "deseq_noShrink.rds"))
 
