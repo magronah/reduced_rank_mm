@@ -6,7 +6,7 @@ library(dplyr)
 library(DESeq2)
 source("func2.R")
 source("initial_param0.R")
-path = paste0(getwd(),"/",nsubj,"_",ntaxa,"/")
+path = paste0(nsubj,"_",ntaxa,"/")
 path
 ###########################################################
 data	  =   readRDS(paste0(path,"sim_count_list_withzi_taxa.rds"))

@@ -1,3 +1,6 @@
+setwd("/home/agronahm/projects/def-bolker/agronahm/reduced_rank_mm/")
+
+
 library(RhpcBLASctl)
 library(Matrix)
 library(huge)
@@ -7,10 +10,10 @@ library(dplyr)
 library(DESeq2)
 source("func2.R")
 source("initial_param0.R")
-path = paste0(getwd(),"/",nsubj,"_",ntaxa,"/")
+path = paste0("cov2/",nsubj,"_",ntaxa,"/")
 path
 ###########################################################
-data	  =   readRDS(paste0(path,"sim_count_list_withzi_taxa.rds"))
+data	  =   readRDS(paste0(path,"sim_data/","rrzi_sim_count_list_withzi_taxa.rds"))
 form	  =   count ~ 1 + us(1 + group|taxon) +  rr(0 + taxon | subject,2)
 ################################################################
 cc =   commandArgs(trailingOnly  = TRUE)
@@ -54,7 +57,7 @@ fit  <- tryCatch({
 })
 
 
-file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","rrzi/")
+file_path  =  paste0("~/scratch/dataset/RR/coverage","/",nsubj,"_",ntaxa,"/","rrzi/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

@@ -1,0 +1,295 @@
+
+R version 4.4.0 (2024-04-24) -- "Puppy Cup"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> setwd("/home/agronahm/projects/def-bolker/agronahm/reduced_rank_mm")
+> 
+> library(reformulas)
+> library(Matrix)
+> library(huge)
+> library(tidyverse)
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ tidyr::expand() masks Matrix::expand()
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+✖ tidyr::pack()   masks Matrix::pack()
+✖ tidyr::unpack() masks Matrix::unpack()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> library(dplyr)
+> library(DESeq2)
+Loading required package: S4Vectors
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:lubridate’:
+
+    intersect, setdiff, union
+
+The following objects are masked from ‘package:dplyr’:
+
+    combine, intersect, setdiff, union
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, saveRDS, setdiff,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:lubridate’:
+
+    second, second<-
+
+The following objects are masked from ‘package:dplyr’:
+
+    first, rename
+
+The following object is masked from ‘package:tidyr’:
+
+    expand
+
+The following objects are masked from ‘package:Matrix’:
+
+    expand, unname
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+
+Attaching package: ‘IRanges’
+
+The following object is masked from ‘package:lubridate’:
+
+    %within%
+
+The following objects are masked from ‘package:dplyr’:
+
+    collapse, desc, slice
+
+The following object is masked from ‘package:purrr’:
+
+    reduce
+
+Loading required package: GenomicRanges
+Loading required package: GenomeInfoDb
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following object is masked from ‘package:dplyr’:
+
+    count
+
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+> library(glmmTMB)
+> library(foreach)
+
+Attaching package: ‘foreach’
+
+The following objects are masked from ‘package:purrr’:
+
+    accumulate, when
+
+> source("func2.R")
+> source("initial_param0.R")
+Generating data from the multivariate normal distribution with the scale-free graph structure....done.
+Generating data from the multivariate normal distribution with the scale-free graph structure....done.
+> ###################################################################
+> ntaxa; nsubj; beta; betadisp; 
+[1] 600
+[1] 200
+[1] 3
+[1] 0
+> 
+> path  =  paste0("cov2/",nsubj,"_",ntaxa,"/")
+> 
+> if (!dir.exists(path)) {
++   dir.create(path, recursive = TRUE) 
++   cat("Folder created at:", path, "\n")
++ } else {
++   cat("Folder already exists at:", path, "\n")
++ }
+Folder already exists at: cov2/200_600/ 
+> 
+> ####################################################################
+> dd     =   meta_data(ntaxa, nsubj)
+> form   =   count ~ 1 + us(1 + group|taxon) +  rr(0 + taxon | subject,2)
+> ####################################################################
+> ## simulate from rr and rrzi models
+> mod   =  list(rr     =    readRDS(paste0(path,"rrref.rds")),
++               rrzi   =    readRDS(paste0(path,"rrziref.rds")))
+> 
+>  
+> theta_true1 =  c(
++   get_theta_logSD(n_gt, seed = seed),
++   get_theta_corr(n_gt, n_gt,  seed=seed),
++   get_theta_rr(d = 2, n = ntaxa, logsdvec = log(c(2, 1)))
++ )
+Generating data from the multivariate normal distribution with the scale-free graph structure....done.
+> 
+> 
+> for(i in 1:length(mod)){
++       b     =   mod[[i]]$obj$report()$b
++   sim_pars  =   lst(b, beta, theta = theta_true1, betadisp)
++   
++   #######################################################################
++   ## check if rr is being mapped correctly
++   pars      =   simulate_new(RHSForm(form, as.form = TRUE), nsim = 1, seed = seed,
++                              newdata    =  dd,
++                              newparams  =  sim_pars,
++                              family     =  nbinom2,
++                              return_val = "pars")
++   
++   stopifnot(b == pars[names(pars) == "b"])
++   stopifnot(theta_true1 == pars[names(pars)=="theta"])
++   ################################################################################
++   #now simulate data using b_est
++   count_list <- simulate_new(RHSForm(form, as.form = TRUE),
++                              newdata   = dd,
++                              newparams = sim_pars,
++                              family = nbinom2,
++                              nsim  = nsim,
++                              seed = seed)
++   
++   res_dd1 = foreach(j = 1:length(count_list))  %do% {
++     dd$count = count_list[[j]]
++     dd
++   }
++   names(res_dd1)  =   paste0("sim", 1:nsim)
++   
++   ####################################################################  
++   #### convert to otu table
++   res_dd2   =  otu_meta_lst_fun(res_dd1)
++   ####################################################################  
++   nam  =  names(mod)[[i]]
++   saveRDS(res_dd1, file = paste0(path,"sim_data/", nam,"_sim_count_list_nozi.rds"))
++   saveRDS(res_dd2, file = paste0(path,"sim_data/", nam, "_otu_meta_list_nozi.rds"))
++   ####################################################################  
++   
++    sim_pars1          =   c(sim_pars, thetazi =  log(diff(qlogis(c(0.12, 0.92)))/4))
++   sim_pars1$betazi    =   qlogis(((0.12) +(0.92))/2)
++   
++   #########################################################################
++   #### Sanity check
++   pars3 <- simulate_new(RHSForm(form, as.form = TRUE), nsim = 1, seed = NULL,
++                         newdata    =  dd,
++                         newparams  =  sim_pars1,
++                         family     =  nbinom2, 
++                         ziformula  = ~1 + (1|taxon),
++                         return_val = "pars"
++   )
++   
++   stopifnot(theta_true1 ==  pars3[names(pars3)=="theta"])
++   stopifnot(b ==  pars3[names(pars3)=="b"])
++   
++   ################## simulate count data zero inflation per taxa
++   ztaxa_count_list <- simulate_new(RHSForm(form, as.form = TRUE),
++                                    newdata   =  dd,
++                                    newparams =  sim_pars1,
++                                    family    =  nbinom2,
++                                    ziformula = ~1 + (1|taxon),
++                                    nsim      =  nsim,
++                                    seed      =  seed)
++   
++   ztaxa_res_dd1 = foreach(i = 1:length(ztaxa_count_list))  %do% {
++     dd$count = ztaxa_count_list[[i]]
++     dd
++   }
++   
++   names(ztaxa_res_dd1)  =   paste0("sim", 1:nsim)
++   ####################################################################  
++   #### convert to otu table
++   ztaxa_res_dd2   =  otu_meta_lst_fun(ztaxa_res_dd1)
++   ####################################################################  
++   saveRDS(ztaxa_res_dd1, file = paste0(path,"sim_data/",nam,"_sim_count_list_withzi_taxa.rds"))
++   saveRDS(ztaxa_res_dd2, file = paste0(path,"sim_data/",nam,"_otu_meta_list_withzi_taxa.rds"))
++   
++   mean_count  =   colMeans(do.call(rbind,lapply(ztaxa_res_dd2, function(x) (x$countdata))))
++   saveRDS(mean_count, file = paste0(path,"sim_data/",nam,"_mean_count.rds"))
++ }
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+    user   system  elapsed 
+1064.990   20.270 1103.226 
