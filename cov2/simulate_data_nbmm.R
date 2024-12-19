@@ -1,3 +1,5 @@
+setwd("/home/agronahm/projects/def-bolker/agronahm/reduced_rank_mm/")
+
 library(reformulas)
 library(Matrix)
 library(huge)
@@ -22,16 +24,9 @@ if (!dir.exists(path)) {
   cat("Folder already exists at:", path, "\n")
 }
 
-nsim =20
 ####################################################################
 dd     =   meta_data(ntaxa, nsubj)
 dd$dummy  =    factor(1)
-
-####################################################################
-## simulate from nbmm and zinbmm models
-#mod   =  list(nbmm     =    readRDS(paste0(path,"nbmmref.rds")),
-#              zinbmm   =    readRDS(paste0(path,"zinbmmref.rds")))
-
 ############Negative Binomial mixed models (NBMMs)############################
 mod0      =     readRDS(paste0(path,"nbmmref.rds"))
 
@@ -77,7 +72,7 @@ result <- lapply(1:nsim, function(j) {
 
 sim_dd  <- lapply(1:nsim, function(k) { 
   list(countdata =  result[[k]], 
-       met_dd    =  ddd)})
+       met_data   =  ddd)})
 
 names(sim_dd)  =  paste0("sim", 1:nsim)
 saveRDS(sim_dd, file=paste0(path,"sim_data/nbmm_otu_meta_list_withzi_taxa.rds"))
@@ -86,6 +81,4 @@ saveRDS(sim_dd, file=paste0(path,"sim_data/nbmm_otu_meta_list_withzi_taxa.rds"))
 #   pp=sim_list[[r]][[1]]
 #   stopifnot(sim_dd[[1]][[1]][,r] == pp)
 # }
-# 
-# View(sim_list)
 
