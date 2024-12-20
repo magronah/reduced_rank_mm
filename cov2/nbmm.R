@@ -13,9 +13,9 @@ path
 ####################################################################
 data	  =   readRDS(paste0(path,"sim_data/","nbmm_otu_meta_list_withzi_taxa.rds"))
 ################################################################
-#cc	=   commandArgs(trailingOnly  = TRUE)
-#i	=   as.integer(cc[1])
-i=1
+cc	=   commandArgs(trailingOnly  = TRUE)
+i	=   as.integer(cc[1])
+
 dd	=   data[[i]]
 ################################################################
 countdata  =   dd$countdata

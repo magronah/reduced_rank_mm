@@ -1,0 +1,270 @@
+
+R version 4.4.0 (2024-04-24) -- "Puppy Cup"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> setwd("/home/agronahm/projects/def-bolker/agronahm/reduced_rank_mm/")
+> library(reformulas)
+> library(Matrix)
+> library(huge)
+> library(tidyverse)
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ tidyr::expand() masks Matrix::expand()
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+✖ tidyr::pack()   masks Matrix::pack()
+✖ tidyr::unpack() masks Matrix::unpack()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> library(dplyr)
+> library(glmmTMB)
+> library(foreach)
+
+Attaching package: ‘foreach’
+
+The following objects are masked from ‘package:purrr’:
+
+    accumulate, when
+
+> library(tibble)
+> library(DESeq2)
+Loading required package: S4Vectors
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:lubridate’:
+
+    intersect, setdiff, union
+
+The following objects are masked from ‘package:dplyr’:
+
+    combine, intersect, setdiff, union
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, saveRDS, setdiff,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:lubridate’:
+
+    second, second<-
+
+The following objects are masked from ‘package:dplyr’:
+
+    first, rename
+
+The following object is masked from ‘package:tidyr’:
+
+    expand
+
+The following objects are masked from ‘package:Matrix’:
+
+    expand, unname
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+
+Attaching package: ‘IRanges’
+
+The following object is masked from ‘package:lubridate’:
+
+    %within%
+
+The following objects are masked from ‘package:dplyr’:
+
+    collapse, desc, slice
+
+The following object is masked from ‘package:purrr’:
+
+    reduce
+
+Loading required package: GenomicRanges
+Loading required package: GenomeInfoDb
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘matrixStats’
+
+The following object is masked from ‘package:dplyr’:
+
+    count
+
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+> source("func2.R")
+> source("initial_param0.R")
+Generating data from the multivariate normal distribution with the scale-free graph structure....done.
+Generating data from the multivariate normal distribution with the scale-free graph structure....done.
+> ####################################################################
+> path1 = paste0(nsubj,"_",ntaxa,"/")
+> path1
+[1] "200_600/"
+> ####################################################################
+> data	  =   readRDS(paste0(path1,"otu_meta_list_withzi_taxa.rds"))
+> ################################################################
+> p  =   100 
+> ## Note we are using the 100th simulation as the refernce model. 
+> dd	=   data[[p]]
+> ################################################################
+> countdata  =   dd$countdata
+> met_dd     =   dd$met_data
+> res        =    deseqfun(countdata,met_dd,ref_name="control")
+converting counts to integer mode
+estimating size factors
+estimating dispersions
+gene-wise dispersion estimates
+mean-dispersion relationship
+-- note: fitType='parametric', but the dispersion trend was not well captured by the
+   function: y = a/x + b, and a local regression fit was automatically substituted.
+   specify fitType='local' or 'mean' to avoid this message next time.
+final dispersion estimates
+fitting model and testing
+using 'normal' for LFC shrinkage, the Normal prior from Love et al (2014).
+
+Note that type='apeglm' and type='ashr' have shown to have less bias than type='normal'.
+See ?lfcShrink for more details on shrinkage type, and the DESeq2 vignette.
+Reference: https://doi.org/10.1093/bioinformatics/bty895
+Warning message:
+In DESeqDataSet(se, design = design, ignoreRank) :
+  some variables in design formula are characters, converting to factors
+> ################################################################
+> path  =  paste0("cov2/",nsubj,"_",ntaxa,"/")
+> 
+> if (!dir.exists(path)) {
++   dir.create(path, recursive = TRUE) 
++   cat("Folder created at:", path, "\n")
++ } else {
++   cat("Folder already exists at:", path, "\n")
++ }
+Folder already exists at: cov2/200_600/ 
+> 
+> ####################################################################
+> dd     =   meta_data(ntaxa, nsubj)
+> sim_list = list()
+> for(i in 1:ntaxa) {
++   
++   beta      =  log(2)*as.numeric(res[i,][c("intercept","log2FoldChange")])
++   betadisp  =   1/as.numeric(res[i,]["dispersion"])
++   sim_pars  =   lst(beta, betadisp)
++   
++   ddd       =   dd %>% filter(taxon == i)
++   
++   ####################################################################
++   ## check if rr is being mapped correctly
++   seed      =   i
++   form      =   formula(paste0("taxon", i, "~ group"))
++   pars      =   simulate_new(RHSForm(form, as.form = TRUE), nsim = 1, seed = seed,
++                              newdata    =  ddd,
++                              newparams  =  sim_pars,
++                              family     =  nbinom2,
++                              return_val = "pars")
++   
++   #####################################################################
++   #now simulate data using b_est
++   sim_list[[i]]  =  simulate_new(RHSForm(form, as.form = TRUE), nsim = nsim, seed = seed,
++                                  newdata   =  ddd,
++                                  newparams =  sim_pars,
++                                  family    =  nbinom2,
++                                  return_val = "sim")
++   
++ }
+> names(sim_list)  =  paste0("taxon",1:ntaxa)
+> 
+> result <- lapply(1:nsim, function(j) {
++   data.frame(do.call(cbind, lapply(sim_list, function(lst) lst[[j]])))
++ })
+> 
+> sim_dd  <- lapply(1:nsim, function(k) { 
++   list(countdata =  result[[k]], 
++        met_data   =  ddd)})
+> 
+> names(sim_dd)  =  paste0("sim", 1:nsim)
+> saveRDS(sim_dd, file=paste0(path,"sim_data/deseq_otu_meta_list_withzi_taxa.rds"))
+> ##############################################################################
+> # for(r in 1:ntaxa){
+> #   pp=sim_list[[r]][[1]]
+> #   stopifnot(sim_dd[[1]][[1]][,r] == pp)
+> # }
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+214.750  11.867 279.572 
