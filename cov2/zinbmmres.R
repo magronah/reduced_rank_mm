@@ -19,9 +19,17 @@ files =   list.files(path, full.names = TRUE)
 res   = foreach(i = files,.combine = "cbind",.packages = "NBZIMM") %do% {
      mod   =   readRDS(i)
      pp    =   fixed(mod)$dist
-     pp[(pp$variables) == "grouptreat",][["Estimate"]]
+    ppp    =   pp[(pp$variables) == "grouptreat",][["Estimate"]]
+    names(ppp)  =  mod$response
+     ppp
 }
+
+common_names <- Reduce(intersect, lapply(res, names))
+filtered_res <- lapply(res, function(x) x[common_names])
+res	 <- do.call(cbind, filtered_res)
+
+
 dd    =   as.data.frame(res)
-rownames(dd)  =	 paste0("taxon",1:ntaxa)
+#rownames(dd)  =	 paste0("taxon",1:ntaxa)
 colnames(dd)  =    paste0("nsim",1:ncol(dd))
 saveRDS(dd, file = paste0("cov2/",nsubj,"_",ntaxa,"/zinbmm.rds"))

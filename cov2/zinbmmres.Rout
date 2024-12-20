@@ -41,10 +41,7 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > res   = foreach(i = files,.combine = "cbind",.packages = "NBZIMM") %do% {
 +      mod   =   readRDS(i)
 +      pp    =   fixed(mod)$dist
-+      pp[(pp$variables) == "grouptreat",][["Estimate"]]
++     ppp    =   pp[(pp$variables) == "grouptreat",][["Estimate"]]
++     names(ppp)  =  mod$response
++      ppp
 + }
-> dd    =   as.data.frame(res)
-> rownames(dd)  =	 paste0("taxon",1:ntaxa)
-Error in `.rowNamesDF<-`(x, value = value) : invalid 'row.names' length
-Calls: rownames<- ... row.names<- -> row.names<-.data.frame -> .rowNamesDF<-
-Execution halted
