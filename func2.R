@@ -370,6 +370,7 @@ deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
   res <- results(dds, cooksCutoff=cooksCutoff, 
                  independentFiltering=independentFiltering,
                  alpha = alpha_level)
+  
   if(do_shrinkage == "no"){
     reslt   <-   res
    }else{
@@ -378,6 +379,8 @@ deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
   
   deseq_est = data.frame(reslt)
   deseq_est$dispersion = dispersions(dds)
+  deseq_est$intercept  = coef(dds)[, "Intercept"]
+  
   deseq_dd   =  deseq_est  %>% 
     rownames_to_column(var = "param_name")
   deseq_dd
