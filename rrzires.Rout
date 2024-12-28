@@ -30,7 +30,7 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > 
 > path = paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/rrzi")
 > path
-[1] "~/scratch/dataset/RR/200_600/rrzi"
+[1] "~/scratch/dataset/RR/150_500/rrzi"
 > ##########################################################
 > files <-   list.files(path, full.names = TRUE)
 > 
@@ -43,8 +43,6 @@ Generating data from the multivariate normal distribution with the scale-free gr
 +     NULL
 +   })
 + }
-Error in file: /home/agronahm/scratch/dataset/RR/200_600/rrzi/mod229.rds - Error in readRDS(i): error reading from connection
-
 > 
 > dd            =  as.data.frame(res)
 > rownames(dd)  =  paste0("taxon",1:nrow(dd))
@@ -54,4 +52,4 @@ Error in file: /home/agronahm/scratch/dataset/RR/200_600/rrzi/mod229.rds - Error
 > 
 > proc.time()
     user   system  elapsed 
- 862.889 1105.095 2429.611 
+ 565.831 1041.749 1770.300 
