@@ -16,6 +16,10 @@ data	  =   readRDS(paste0(path,"sim_data/","nbmm_otu_meta_list_withzi_taxa.rds")
 cc	=   commandArgs(trailingOnly  = TRUE)
 i	  =   as.integer(cc[1])
 
+par_ctrl <- glmmTMBControl(
+  parallel = list(n = 10, autopar = TRUE)
+)
+
 dd	=   data[[i]]
 ################################################################
 countdata  =   dd$countdata
@@ -33,12 +37,15 @@ normalizer =   sizeFactors(dds)
 options(glmmTMB_openmp_debug = TRUE)
 blas_set_num_threads(1)
 
-#form = formula(paste0("taxon",j, "~ group + (1 | dummy) + offset(normalizer)"))
+
+gprior  <- data.frame(prior = "gamma(2, 2.5)",
+                        class = "theta_sd",
+                        coef = "")
 
 mod_list  =  list()
 for(j in 1:ntaxa){
   
-  met_dd$count       =   otu_count[,j]
+  met_dd$count   =   countdata[,j]
   mod_list[[j]]  =   glmmTMB(count ~ group + (1 | dummy) + offset(normalizer), 
                              data = met_dd,
                              family  = nbinom2,
