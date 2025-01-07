@@ -15,34 +15,14 @@ titles  =  c("50 subjects per group and 300 taxa",
 
 n = 10; p1  =   p2   =  p3 =  p4  = p5  = list()
 
-lapply(dd$dd,dim)
+lapply(dd$dd,dim) 
+
+setdiff(rownames(dd$dd$rr),rownames(dd$dd$nbmm))
 
 for(i in 1:length(strg)){
   i = 3
   path  =   paste0(getwd(),"/cov2",strg[[i]])
   dd    =   load_data(path) 
-  #####################################################
-  mse   =   err_extract(dd, "avg_mse")
-  bias  =   err_extract(dd, "avg_bias")
-  
-  p1[[i]] = ggplot(mse, aes(model, average_value)) +
-    geom_point() +
-    geom_hline(yintercept = mse["rrzi",1], linetype = "dashed", color = "red") +
-    custom_theme(n) +
-    labs(title= titles[[i]],
-         y = "Average RMSE across taxa"
-           #"Comparison of average RMSE across taxa",x = " ",y = "Average RMSE"
-         )
-  
-  p2[[i]] = ggplot(bias, aes(model, average_value)) +
-    geom_point() +
-    geom_hline(yintercept = bias["rrzi",1], linetype = "dashed", color = "red") +
-    custom_theme(n) +
-    labs(title = titles[[i]],
-         y = "Average bias across taxa"
-           #"Comparison of average bias across taxa",x = " ",y = "Average Bias"
-           )
-  
   #####################################################
   ####Coverage Calculation 
   pp       =   do.call(rbind,dd[["confint"]]) %>%  
@@ -54,7 +34,7 @@ for(i in 1:length(strg)){
                            data = pp, FUN = mean)
   
   # Create the plot
-  p3[[i]]= ggplot(mean_values, aes(x = model, ymin = lwr, ymax = upr, y = (lwr + upr) / 2)) +
+  p1[[i]]= ggplot(mean_values, aes(x = model, ymin = lwr, ymax = upr, y = (lwr + upr) / 2)) +
     geom_pointrange(size = 0.8) +
     geom_hline(aes(yintercept = true_param), linetype = "dashed", color = "red", size = 1) +
     labs(
@@ -68,7 +48,7 @@ for(i in 1:length(strg)){
     coord_flip()
   
   
-  p4[[i]]  = ggplot(mean_values, aes(x = model, y = CI_width)) +
+  p2[[i]]  = ggplot(mean_values, aes(x = model, y = CI_width)) +
     geom_point() +
     labs(
       title = "Confidence Width for Models",
@@ -84,7 +64,7 @@ for(i in 1:length(strg)){
   coverage_dd$coverage =  coverage_dd$coverage/num_taxa  
   
   
-  p5[[i]]  = ggplot(coverage_dd, aes(x = model, y = coverage)) +
+  p3[[i]]  = ggplot(coverage_dd, aes(x = model, y = coverage)) +
     geom_point() +
     custom_theme(n)
 }
