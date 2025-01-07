@@ -45,3 +45,17 @@ Generating data from the multivariate normal distribution with the scale-free gr
 +     names(ppp)  =  mod$response
 +      ppp
 + }
+> 
+> common_names <- Reduce(intersect, lapply(res, names))
+> filtered_res <- lapply(res, function(x) x[common_names])
+> res	 <- do.call(cbind, filtered_res)
+> 
+> 
+> dd    =   as.data.frame(res)
+> #rownames(dd)  =	 paste0("taxon",1:ntaxa)
+> colnames(dd)  =    paste0("nsim",1:ncol(dd))
+> saveRDS(dd, file = paste0("cov2/",nsubj,"_",ntaxa,"/zinbmm.rds"))
+> 
+> proc.time()
+    user   system  elapsed 
+5307.478   71.109 5536.865 
