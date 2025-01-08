@@ -23,8 +23,7 @@ par_ctrl <- glmmTMBControl(
 dd	=   data[[i]]
 ################################################################
 countdata  =   dd$countdata
-met_dd     =   dd$met_dd  
-# later change to dd$met_data
+met_dd     =   dd$met_data
 
 met_dd$dummy = factor(1)
 
