@@ -13,6 +13,9 @@ path = paste0("~/scratch/dataset/RR/coverage/",nsubj,"_",ntaxa,"/zinbmm")
 path
 
 
+
+
+
 files =  list.files(path, full.names = TRUE)
 
 res   = foreach(i = files,.packages = "NBZIMM") %do% {

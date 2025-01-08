@@ -42,17 +42,35 @@ gprior  <- data.frame(prior = "gamma(2, 2.5)",
                       class = "theta_sd",
                       coef = "")
 
-mod_list  =  list()
+#lapply(mod, function(x){summary(x)$coefficients$cond["grouptreat", "Estimate"]})
+
+mod_list  =   list()
+
 for(j in 1:ntaxa){
   
   met_dd$count   =   countdata[,j]
-  mod_list[[j]]  =   glmmTMB(count ~ group + (1 | dummy) + offset(normalizer), 
-                             data = met_dd,
-                             family  = nbinom2,
-                             ziformula  = ~1,
-                             prior   = gprior,
-                             REML    = TRUE,
-                             control = par_ctrl)
+  
+  fit  <- tryCatch({
+    mod_fit  =  glmmTMB(count ~ group + (1 | dummy) + offset(normalizer), 
+                  data = met_dd,
+                  family  = nbinom2,
+                  ziformula  = ~1,
+                  prior   = gprior,
+                  REML    = TRUE,
+                  control = par_ctrl)
+  }, error =  function(e){
+    message("Error in first attempt, trying again without prior...")
+    mod_fit  =  glmmTMB(count ~ group + (1 | dummy) + offset(normalizer), 
+                  data = met_dd,
+                  family  = nbinom2,
+                  ziformula  = ~1,
+                  REML    = TRUE,
+                  control = par_ctrl)
+    
+  })
+  
+  mod_list[[j]]  = mod_fit
+  
 }
 
 file_path  =  paste0("~/scratch/dataset/RR/coverage","/",nsubj,"_",ntaxa,"/","zinbmm2/")
