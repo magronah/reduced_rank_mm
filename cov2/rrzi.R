@@ -40,7 +40,7 @@ par_ctrl <- glmmTMBControl(
   blas_set_num_threads(1)
 
 fit  <- tryCatch({
-    glmmTMB(form2, data = df,
+    mod = glmmTMB(form2, data = df,
                      family  = nbinom2,
                      ziformula  = ~1 + (1|taxon),
                      prior   = gprior,
@@ -48,7 +48,7 @@ fit  <- tryCatch({
                      control = par_ctrl)
 }, error =  function(e){
      message("Error in first attempt, trying again without prior...")
-       glmmTMB(form2, data = df,
+    mod = glmmTMB(form2, data = df,
                      family  = nbinom2,
                      ziformula  = ~1 + (1|taxon),
                      REML    = TRUE,
@@ -67,7 +67,7 @@ if (!dir.exists(file_path)) {
 }
 
 
-saveRDS(fit, file=paste0(file_path,"mod",i,".rds"))
+saveRDS(mod, file=paste0(file_path,"mod",i,".rds"))
 
 
 # true =  readRDS(paste0(path,"true_param.rds"))
