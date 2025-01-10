@@ -54,7 +54,7 @@ for(j in 1:ntaxa){
                              control = par_ctrl)
 }
 
-file_path  =  paste0("~/scratch/dataset/RR/coverage","/",nsubj,"_",ntaxa,"/","nbmm2/")
+file_path  =  paste0("~/scratch/dataset/RR/coverage","/",nsubj,"_",ntaxa,"/","nbmm/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

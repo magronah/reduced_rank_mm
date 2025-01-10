@@ -38,3 +38,14 @@ Generating data from the multivariate normal distribution with the scale-free gr
 +   mod  =   readRDS(i)
 +   lapply(mod,function(x) {summary(x)$coefficients$cond[, "Pr(>|z|)"][["grouptreat"]]})
 + }
+There were 50 or more warnings (use warnings() to see the first 50)
+> 
+> 
+> dd            =  as.data.frame(res)
+> rownames(dd)  =  paste0("taxon",1:nrow(dd))
+> colnames(dd)  =  paste0("sim",1:ncol(dd))
+> saveRDS(dd, file = paste0("cov2/",nsubj,"_",ntaxa,"/pval_zinbmm.rds"))
+> 
+> proc.time()
+    user   system  elapsed 
+5568.151  534.056 6362.695 

@@ -76,8 +76,8 @@ Generating data from the multivariate normal distribution with the scale-free gr
 Generating data from the multivariate normal distribution with the scale-free graph structure....done.
 > ####################################################################
 > ntaxa; nsubj; beta; betadisp; 
-[1] 300
-[1] 100
+[1] 500
+[1] 150
 [1] 3
 [1] 0
 > 
@@ -89,7 +89,7 @@ Generating data from the multivariate normal distribution with the scale-free gr
 + } else {
 +   cat("Folder already exists at:", path, "\n")
 + }
-Folder already exists at: cov2/100_300/ 
+Folder already exists at: cov2/150_500/ 
 > 
 > ####################################################################
 > dd     =   meta_data(ntaxa, nsubj)
@@ -143,9 +143,13 @@ Folder already exists at: cov2/100_300/
 > 
 > names(sim_dd)  =  paste0("sim", 1:nsim)
 > saveRDS(sim_dd, file=paste0(path,"sim_data/nbmm_otu_meta_list_withzi_taxa.rds"))
-Error in gzfile(file, mode) : cannot open the connection
-Calls: saveRDS -> gzfile
-In addition: Warning message:
-In gzfile(file, mode) :
-  cannot open compressed file 'cov2/100_300/sim_data/nbmm_otu_meta_list_withzi_taxa.rds', probable reason 'No such file or directory'
-Execution halted
+> ##############################################################################
+> # for(r in 1:ntaxa){
+> #   pp=sim_list[[r]][[1]]
+> #   stopifnot(sim_dd[[1]][[1]][,r] == pp)
+> # }
+> 
+> 
+> proc.time()
+   user  system elapsed 
+125.445   3.393 139.138 
