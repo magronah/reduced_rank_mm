@@ -52,5 +52,5 @@ heatmap_contour4_png
 !desesq_noShrinkref.rds
 !nbmmref.rds
 !zinbmmref.rds
-!pval_nbmm.rds
-!pval_zinbmm.rds
+!nbmm_pval.rds
+!zinbmm_pval.rds
