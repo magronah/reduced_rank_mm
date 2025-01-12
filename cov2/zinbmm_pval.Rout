@@ -28,7 +28,7 @@ Type 'q()' to quit R.
 Generating data from the multivariate normal distribution with the scale-free graph structure....done.
 Generating data from the multivariate normal distribution with the scale-free graph structure....done.
 > ############################################################
-> path = paste0("~/scratch/dataset/RR/coverage/",nsubj,"_",ntaxa,"/zinbmm2")
+> path = paste0("~/scratch/dataset/RR/coverage/",200,"_",600,"/zinbmm2")
 > path
 [1] "~/scratch/dataset/RR/coverage/200_600/zinbmm2"
 > 
@@ -36,7 +36,7 @@ Generating data from the multivariate normal distribution with the scale-free gr
 > 
 > res = foreach(i = files, .combine ="cbind") %do% {
 +   mod  =   readRDS(i)
-+   lapply(mod,function(x) {summary(x)$coefficients$cond[, "Pr(>|z|)"][["grouptreat"]]})
++   unlist(lapply(mod,function(x) {summary(x)$coefficients$cond[, "Pr(>|z|)"][["grouptreat"]]}))
 + }
 There were 50 or more warnings (use warnings() to see the first 50)
 > 
@@ -44,8 +44,8 @@ There were 50 or more warnings (use warnings() to see the first 50)
 > dd            =  as.data.frame(res)
 > rownames(dd)  =  paste0("taxon",1:nrow(dd))
 > colnames(dd)  =  paste0("sim",1:ncol(dd))
-> saveRDS(dd, file = paste0("cov2/",nsubj,"_",ntaxa,"/pval_zinbmm.rds"))
+> saveRDS(dd, file = paste0("cov2/",nsubj,"_",ntaxa,"/zinbmm_pval.rds"))
 > 
 > proc.time()
-    user   system  elapsed 
-5568.151  534.056 6362.695 
+     user    system   elapsed 
+ 8873.613   960.441 10021.548 
