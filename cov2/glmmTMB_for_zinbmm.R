@@ -13,9 +13,9 @@ path
 ####################################################################
 data	  =   readRDS(paste0(path,"sim_data/","zinbmm_otu_meta_list_withzi_taxa.rds"))
 ################################################################
-#cc	=   commandArgs(trailingOnly  = TRUE)
-#i	  =   as.integer(cc[1])
-i  =  1
+cc	=   commandArgs(trailingOnly  = TRUE)
+i	  =   as.integer(cc[1])
+
 par_ctrl <- glmmTMBControl(
   parallel = list(n = 10, autopar = TRUE)
 )
@@ -33,7 +33,6 @@ dds        =   DESeq(dds,sfType ="poscounts",minReplicatesForReplace=Inf)
 normalizer =   sizeFactors(dds)
 
 
-if(FALSE){
 options(glmmTMB_openmp_debug = TRUE)
 blas_set_num_threads(1)
 
@@ -85,5 +84,5 @@ if (!dir.exists(file_path)) {
 names(mod_list)  =  colnames(countdata)
 saveRDS(mod_list, file=paste0(file_path,"mod",i,".rds"))
 
-}
+
 
