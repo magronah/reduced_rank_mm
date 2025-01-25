@@ -12,7 +12,7 @@ path
 
 files <-   list.files(path, full.names = TRUE)
 
-res = foreach(i = files, .packages = "glmmTMB") %do% {
+res = foreach(i = files,.combine ="c", .packages = "glmmTMB") %do% {
   mod  =   readRDS(i)
   unlist(lapply(mod,function(x) {summary(x)$coefficients$cond[, "Pr(>|z|)"][["grouptreat"]]}))
 }
