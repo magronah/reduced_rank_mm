@@ -1,8 +1,8 @@
 library(glmmTMB)
 library(NBZIMM)
 ##############################################################
-path   =   paste0(getwd(),"/real_data/soil_data")
-source(paste0(path,"/prep_data.R"))
+path   =   paste0(getwd(),"/real_data/soil_data/")
+source(paste0(path,"prep_data.R"))
 ##############################################################
 ddd   =   t(countdata)
 ###########################################################
@@ -15,7 +15,7 @@ tt = system.time({
                  niter = 100)
 })
 ###########################################################
-file_path  =  paste0(path,"soil_data/results/")
+file_path  =  paste0(path,"results/")
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)
   cat("Folder created at:", file_path, "\n")
@@ -81,44 +81,3 @@ for(i in 1:length(taxa_name)){
 zinbmm_aicc   <-   sum(sapply(res1, `[[`, "AICc"))
 saveRDS(zinbmm_aicc, file=paste0(file_path,"zinbmm_aicc.rds"))
 saveRDS(res1, file=paste0(file_path,"zinbmm_res.rds"))
-#########################################################
-##' run those that NBMM could not fit 
-##' (I suppose due to small count values-check this!) 
-##' in glmmTMB
-
-diff = setdiff(colnames(ddd), taxa_name)
-if(is.null(diff)){
-  
-  zinbmm_aicc   <-   sum(sapply(res1, `[[`, "AICc"))
-  saveRDS(zinbmm_aicc, file=paste0(file_path,"zinbmm_aicc.rds"))
-  saveRDS(res1, file=paste0(file_path,"zinbmm_res.rds"))
-  
-}else{
-  
-  res2 = list()
-  for(i in 1:length(diff)){
-    y  =  ddd[,diff[i]]
-    
-    mod   =   glmmTMB(y ~ group + (1 | site) + offset(normalizer), 
-                      data = meta_dd, 
-                      ziformula = ~1,
-                      family = nbinom2())
-    
-    num_params  =   attr(logLik(mod), "df")  
-          LL    =   as.numeric(logLik(mod))
-       aic      =   -2*LL +  2*num_params
-    correction  =    2*num_params*(num_params+1)/(length(y) - num_params -  1)
-    
-    
-    res2[[i]] = list(mod    =   mod,
-                     AIC    =   aic,
-                     AICc   =   aic + correction,
-                     LL     =   LL)
-  }
-  ####################################################################
-  zinbmm_aicc <-  sum(sapply(res1, `[[`, "AICc")) + sum(sapply(res2, `[[`, "AICc"))
-       res    =   list(res1, res2)
- 
-  saveRDS(zinbmm_aicc, file=paste0(file_path,"zinbmm_aicc.rds"))
-  saveRDS(res, file=paste0(file_path,"zinbmm_res.rds"))
-}

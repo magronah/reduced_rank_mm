@@ -1,8 +1,8 @@
 library(RhpcBLASctl)
 library(glmmTMB)
 ###########################################################
-path   =   paste0(getwd(),"/real_data/soil_data")
-source(paste0(path,"/prep_data.R"))
+path   =   paste0(getwd(),"/real_data/soil_data/")
+source(paste0(path,"prep_data.R"))
 ################################################################
 par_ctrl <- glmmTMBControl(
   parallel = list(n = 10, autopar = TRUE)
@@ -33,7 +33,7 @@ tt2 = system.time(
                   control = par_ctrl)
 )
 ################################################################
-file_path  =  paste0(path,"soil_data/results/")
+file_path  =  paste0(path,"results/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

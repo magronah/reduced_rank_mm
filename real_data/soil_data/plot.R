@@ -3,27 +3,39 @@ library(ggplot2)
 library(dplyr)
 library(AICcmodavg)
 ##############################################################
+path1   =   paste0(getwd(),"/real_data/")
+source(paste0(path1,"/fun.R"))
+
 path   =   paste0(getwd(),"/real_data/soil_data/results/")
 ##############################################################
-     rr       =   readRDS(paste0(path,"rr_mod.rds"))
-     rrzi     =   readRDS(paste0(path,"rrzi_mod.rds"))
-     us       =   readRDS(paste0(path,"us_mod.rds"))
-     uszi     =   readRDS(paste0(path,"uszi_mod.rds"))
-     nbmm     =   readRDS(paste0(path,"nbmm_aicc.rds"))
-   zinbmm     =   readRDS(paste0(path,"zinbmm_aicc.rds"))
-    deseq     =   readRDS(paste0(path,"zinbmm_aicc.rds"))
+     RR       =   readRDS(paste0(path,"rr_mod.rds"))
+     RRzi     =   readRDS(paste0(path,"rrzi_mod.rds"))
+     US       =   readRDS(paste0(path,"us_mod.rds"))
+     USzi     =   readRDS(paste0(path,"uszi_mod.rds"))
+     Nbmm     =   readRDS(paste0(path,"nbmm_aicc.rds"))
+   Zinbmm     =   readRDS(paste0(path,"zinbmm_aicc.rds"))
+       DE     =   readRDS(paste0(path,"deseq_aicc.rds"))
 ##############################################################
-    mod     =   lst(rr,rrzi,us,uszi)
+    mod     =   lst(RR,RRzi,US,USzi)
       dd    =   data.frame(aictab(mod, modnames = names(mod)))
 ##############################################################
+df1  <- dd %>% select(Modnames,AICc)
+df2  <- data.frame(Modnames =  c("Nbmm", "Zinbmm", "DE"),
+                   AICc     =  c(Nbmm,Zinbmm, DE))
+
+df   =   rbind(df1, df2)
+df$Delta_AICc  <-  df$AICc - min(df$AICc)
+##############################################################
+ggplot(df, aes(Modnames,Delta_AICc)) + 
+  geom_point() +
+  custom_theme(12) +
+  labs(x ="", y = "Change in AICc")
+      
 df  <- dd %>%
         select(Modnames,AICc, Delta_AICc)
       
-a   =  min(df$AICc) -  zinbmm
-if(z < 0){
-  df 
-}
-  
+
+        
 ###############################################################
 load_models <- function(path, filenames) {
   file_paths <- paste0(path, filenames)

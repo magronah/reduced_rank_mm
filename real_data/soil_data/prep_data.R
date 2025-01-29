@@ -4,8 +4,8 @@ library(dplyr)
 library(DESeq2)
 library(gllvm)
 ###########################################################
-path   =   paste0(getwd(),"/real_data/")
-source(paste0(path,"/fun.R"))
+path1   =   paste0(getwd(),"/real_data/")
+source(paste0(path1,"/fun.R"))
 ###########################################################
 data("microbialdata")
 data <- (microbialdata$Y); met_dd <- microbialdata$Xenv

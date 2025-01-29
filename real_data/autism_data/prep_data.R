@@ -4,8 +4,8 @@ library(DESeq2)
 library(glmmTMB)
 library(NBZIMM)
 ##############################################################
-path   =   paste0(getwd(),"/real_data/")
-source(paste0(path,"/fun.R"))
+path1   =   paste0(getwd(),"/real_data/")
+source(paste0(path1,"/fun.R"))
 ##############################################################
 data        =   readRDS(paste0(path,"autism_data/aut_data.rds"))
 metadata    =   readRDS(paste0(path,"autism_data/aut_metadata.rds"))

@@ -1,13 +1,57 @@
-#setwd("/project/6006158/agronahm/Michael-n-Ben-Repo/")
-library(tibble)
-library(DESeq2)
+library(RhpcBLASctl)
+library(glmmTMB)
+###########################################################
+path   =   paste0(getwd(),"/real_data/CrohnD_data/")
+source(paste0(path,"prep_data.R"))
+##############################################################
+ddd     =    t(countdata)
+param   =    coef(pp$object)
+result  =    pp$result
+res     =    list()
 
-path        =   paste0(getwd(),"/reproducible/new_sim/real_data/")
-source(paste0(path,"fun.R"))
-source(paste0(path,"autism/load_data.R"))
+for(i in 1:ncol(ddd)){
+  y      =   ddd[,i]
+  modA   =   glmmTMB(y ~ group + age + offset(normalizer), 
+                     data = meta_dd, 
+                     family = nbinom2())
+  
+  
+  modB1  =   glmmTMB(y ~ group + age + offset(normalizer), 
+                     data   = meta_dd, 
+                     family = nbinom2(),
+                     doFit  = FALSE)
+  
+  modB2 <- fitTMB(modB1, doOptim = FALSE)
+  
+  pars <- modB2$env$par
+  
+  pars[names(pars) == "beta"]    <-  log(2)*as.numeric(param[i,])
+  pars[names(pars) == "betadisp"] <- log(1/result$dispersion[[i]])
+  
+       par2     <-   modA$fit$par
+  
+  num_params  =   attr(logLik(modA), "df")  
+  aic         =   2*(modB2$fn(pars)) +  2*(num_params)
+  correction  =   2*num_params*(num_params+1)/(length(y) - num_params -  1)
+  
+  res[[i]]  = list(deseq_LL     =    modB2$fn(pars),
+                    glmmTMB_LL  =    modB2$fn(par2), 
+                    params  =    cbind(deseq = pars, glmmTMB = par2),
+                    AIC     =    aic,
+                    AICc    =    aic +  correction,
+                    mod     =    modA)
+}
 
-res        =   deseqfun(dd_filt,met_dd,ref_name="ASD")
-saveRDS(res, file=paste0(path,"autism/data/deseq_mod.rds"))
+####################################################################
+file_path  =  paste0(path,"results/")
 
+if (!dir.exists(file_path)) {
+  dir.create(file_path, recursive = TRUE)
+  cat("Folder created at:", file_path, "\n")
+} else {
+  cat("Folder already exists at:", file_path, "\n")
+}
 
-dim(dd_filt)
+deseq_aicc   <-   sum(sapply(res, `[[`, "AICc"))
+saveRDS(deseq_aicc, file=paste0(file_path,"deseq_aicc.rds"))
+saveRDS(res, file=paste0(file_path,"deseq_res.rds"))

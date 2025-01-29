@@ -1,8 +1,8 @@
 library(glmmTMB)
 library(NBZIMM)
 ##############################################################
-path   =   paste0(getwd(),"/real_data/soil_data")
-source(paste0(path,"/prep_data.R"))
+path   =   paste0(getwd(),"/real_data/soil_data/")
+source(paste0(path,"prep_data.R"))
 ##############################################################
            ddd   =   t(countdata)
 ###########################################################
@@ -14,7 +14,7 @@ tt = system.time({
                  niter = 100)
 })
 ################################################################
-file_path  =  paste0(path,"soil_data/results/")
+file_path  =  paste0(path,"results/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)
@@ -37,7 +37,7 @@ par_list = lapply(mod$fit, function(x){
 taxa_name  =  names(mod$fit)
 
 for(i in 1:length(taxa_name)){
-  y  =  dd[,taxa_name[i]]
+  y  =  dd[,i]
   
   modA   =   glmmTMB(y ~ group + (1 | site) + offset(normalizer), 
                      data = meta_dd, 
@@ -81,6 +81,7 @@ saveRDS(res1, file=paste0(file_path,"nbmm_res.rds"))
 ##' run those that NBMM could not fit 
 ##' (I suppose due to small count values-check this!) 
 ##' in glmmTMB
+
 
 diff = setdiff(colnames(dd), taxa_name)
 if(is.null(diff)){

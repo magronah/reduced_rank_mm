@@ -55,7 +55,6 @@ for(i in 1:ncol(dd)){
                                   )
   pars[names(pars) == "betadisp"] <- log(1/pp$result$dispersion[[i]])
 
-  
   ## drop RE parameters
   pars <- pars[names(pars) != "b"]
   
