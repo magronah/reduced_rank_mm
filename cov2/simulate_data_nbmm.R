@@ -28,7 +28,7 @@ if (!dir.exists(path)) {
 dd     =   meta_data(ntaxa, nsubj)
 dd$dummy  =    factor(1)
 ############Negative Binomial mixed models (NBMMs)############################
-mod0      =     readRDS(paste0(path,"nbmmref.rds"))
+mod0      =     readRDS(paste0(path,"reference_model/nbmmref.rds"))
 
 sim_list = list()
 

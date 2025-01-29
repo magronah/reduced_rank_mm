@@ -31,7 +31,7 @@ mod        =   mms(y = countdata, fixed = ~group + offset(normalizer),
                       zi_fixed = ~1,
                       data = met_dd, method = "zinb")
 
-file_path  =  paste0("~/scratch/dataset/RR/coverage","/",nsubj,"_",ntaxa,"/","zinbmm/")
+file_path  =  paste0("~/scratch/coverage","/",nsubj,"_",ntaxa,"/","zinbmm/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)
