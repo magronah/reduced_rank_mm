@@ -1,6 +1,6 @@
 seed = 101; ntaxa = 600; nsubj = 200; beta = 3; betadisp = 0 
 #betazi = -2
-nsim =  500 ; n_gt = 2
+nsim =  1000 ; n_gt = 2
 
 theta_true =  c(
   get_theta_logSD(n_gt, seed = seed),

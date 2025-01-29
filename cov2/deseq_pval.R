@@ -2,8 +2,7 @@ library(foreach)
 library(huge)
 library(Matrix)
 source("func2.R")
-#source("initial_param0.R")
-nsubj = 200; ntaxa = 600
+source("initial_param0.R")
 ############################################################
 path = paste0("~/scratch/dataset/RR/coverage/",nsubj,"_",ntaxa,"/deseq")
 path

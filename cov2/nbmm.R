@@ -19,8 +19,7 @@ i	=   as.integer(cc[1])
 dd	=   data[[i]]
 ################################################################
 countdata  =   dd$countdata
-met_dd     =   dd$met_dd  
-# later change to dd$met_data
+met_dd     =   dd$met_data
 
 met_dd$dummy = factor(1)
 
@@ -33,7 +32,7 @@ mod        =   mms(y = countdata, fixed = ~group + offset(normalizer),
                    random =  ~ 1|dummy,
                    data = met_dd, method = "nb")
 
-file_path  =  paste0("~/scratch/dataset/RR/coverage","/",nsubj,"_",ntaxa,"/","nbmm/")
+file_path  =  paste0("~/scratch/coverage/",nsubj,"_",ntaxa,"/nbmm/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

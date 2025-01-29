@@ -7,7 +7,7 @@ library(Matrix)
 source("func2.R")
 source("initial_param0.R")
 ############################################################
-path = paste0("~/scratch/dataset/RR/coverage/",nsubj,"_",ntaxa,"/deseq")
+path = paste0("~/scratch/coverage/",nsubj,"_",ntaxa,"/deseq")
 path
  
 files          <-   list.files(path, full.names = TRUE)
