@@ -3,7 +3,6 @@ library(NBZIMM)
 library(DESeq2)
 library(tibble)
 library(dplyr)
-
 path        =   paste0(getwd(),"/reproducible/new_sim/real_data/")
 ##############################################################
 source(paste0(path,"fun.R"))

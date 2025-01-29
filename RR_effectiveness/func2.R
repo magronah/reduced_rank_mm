@@ -1,153 +1,8 @@
-generate_increasing_total_variance <- function(tt_logvar, tt_cor, rr_logvar, steps = 10) {
-  # Ensure input validity
-  if (length(tt_logvar) != 2) {
-    stop("tt_logvar must each have exactly two elements.")
-  }
-  
-  # Base values for the fixed components
-  v1 <- tt_logvar[1]
-  v2 <- tt_logvar[2]
-  cor <- tt_cor
-  
-  # Proportions for rr components
-  proportions <- seq(0, 1, length.out = steps)
-  
-  # Generate results
-  results <- lapply(proportions, function(p_rr) {
-    # Calculate tt contributions (remain constant)
-    tt_sd1_cont <- v1
-    tt_sd2_cont <- v2 / 2
-    tt_cor_cont <- cor
-    
-    # Adjust rr contributions (increasing)
-    #rr1_sd_cont <- p_rr * rr_logvar[1]
-    #rr2_sd_cont <- p_rr * rr_logvar[2]
-    rr_cont  <- p_rr *rr_logvar
-    
-    # Calculate the total variance (increasing)
-    total_variance <- tt_sd1_cont + tt_sd2_cont + tt_cor_cont + sum(rr_cont)
-    # rr1_sd_cont + rr2_sd_cont
-    
-    # Create a data frame for this iteration
-  ddf = data.frame(
-      tt_sd1_cont = tt_sd1_cont,
-      tt_sd2_cont = tt_sd2_cont,
-      tt_cor_cont = tt_cor_cont,
-      t(rr_cont),
-      #rr1_sd_cont = rr1_sd_cont,
-      #rr2_sd_cont = rr2_sd_cont,
-      total_var = total_variance,
-      prop_rr = p_rr
-    )
-  
-  colnames(ddf)  =  c("tt_sd1_cont","tt_sd2_cont","tt_cor_cont",
-                      paste0("rr",1:(length(rr_cont)),"_sd_cont"),
-                           "total_var", "prop_rr")
-  ddf
-  
-  })
-  
-    # Combine results into a single data frame
-  results_df <- do.call(rbind, results)
-  return(results_df)
-}
-
-
-generate_variance_proportions <- function(total_logvar, tt_logvar, tt_cor, rr_logvar, steps = 10) {
-  # Ensure input validity
-  if (length(tt_logvar) != 2) {
-    stop("tt_logvar must each have exactly two elements.")
-  }
-  
-  # Base values for the components
-  v1 <- tt_logvar[1]
-  v2 <- tt_logvar[2]
-  cor <- tt_cor
-  
-  #rr1 <- rr_logvar[1]
-  #rr2 <- rr_logvar[2]
-  
-  # Generate proportions for v1, v2, rr1, rr2, and cor
-  proportions <- seq(0, 1, length.out = steps)
-  
-  # Generate results
-  results <- lapply(proportions, function(p_c2) {
-    # Proportion for c1 (which will be decreasing)
-    p_c1 <- 1 - p_c2
-    
-    # Split the variance contribution between the components:
-    # Adjust the values of v1, v2, rr1, rr2, and cor based on the proportions
-    
-    # Adjust the values for tt_logvar and rr_logvar
-    tt_sd1_cont <- p_c1 * v1
-    tt_sd2_cont <- p_c1 * (v2 / 2) # The second component from tt_logvar has half the weight
-    tt_cor_cont <- p_c1 * cor
-    
-    rr_cont  <- p_c2 *rr_logvar
-    #rr1_contrib <- p_c2 * rr1
-    #rr2_contrib <- p_c2 * rr2
-    
-    # Calculate the total variance as the sum of contributions
-    total_variance <- tt_sd1_cont + tt_sd2_cont + tt_cor_cont + sum(rr_cont)
-    #rr1_contrib + rr2_contrib
-    
-    # Ensure the total variance remains constant (close to total_logvar)
-    if (abs(total_variance - total_logvar) > 1e-5) {
-      scaling_factor <- total_logvar / total_variance
-      tt_sd1_cont <- tt_sd1_cont * scaling_factor
-      tt_sd2_cont <- tt_sd2_cont * scaling_factor
-      tt_cor_cont <- tt_cor_cont * scaling_factor
-      rr_cont <-  rr_cont * scaling_factor
-      #rr1_contrib <- rr1_contrib * scaling_factor
-      #rr2_contrib <- rr2_contrib * scaling_factor
-    }
-    
-  dd1=  data.frame(
-      tt_sd1_cont = tt_sd1_cont,
-      tt_sd2_cont = tt_sd2_cont,
-      tt_cor_cont = tt_cor_cont,
-      total_var =  tt_sd1_cont + tt_sd2_cont + tt_cor_cont + sum(rr_cont),
-      prop_tt = p_c1,
-      prop_rr = p_c2
-    )
-  
-  dd2=  data.frame(
-    t(rr_cont),
-    total_var =  tt_sd1_cont + tt_sd2_cont + tt_cor_cont + sum(rr_cont)
-  )
-  
-  colnames(dd2)  =  c(paste0("rr",1:(length(dd2)-1),"_sd_cont"),"total_var")
-  dd =right_join(dd1,dd2, by="total_var")
-  dd
-  })
-  
-  # Combine results into a single data frame
-  results_df <- do.call(rbind, results)
-  return(results_df)
-}
-
-df_long = function(dd, otu_names = "sp", subject_name = "subject", ntaxa){
-  if(ncol(dd) != ntaxa){
-    dd  =  as.data.frame(t(dd))
-  }else{
-    dd  =  data.frame(dd)
-  }
-  df   =  dd %>%
-    rownames_to_column(subject_name)
-  ddd =   pivot_longer(df,
-                       cols = starts_with(otu_names),
-                       names_to  = otu_names,
-                       values_to = "count")
-  names(ddd)  = c(subject_name,"taxon","count")
-  ddd
-}
-
-###########################################
 ## goal: pick 'theta' parameters for a reduced-rank model in a sensible way
 ##' @param d rank (dimension)
 ##' @param n full dimension (latent variables per group)
 ##' @param logsdvec vector of log-SDs of each factor
-get_theta_rr <- function(d, n, logsdvec, seed = NULL) {
+get_theta_rr <- function(d, n, logsdvec) {
   mat <- matrix(0, nrow=n, ncol=d)
   ## replicate if length-1 ...
   if (length(logsdvec) == 1) logsdvec <- rep(logsdvec, d)
@@ -160,7 +15,6 @@ get_theta_rr <- function(d, n, logsdvec, seed = NULL) {
     ## (unlike if we were trying to *estimates* these parameters,
     ##  would need to constrain one value for identifiability,
     ##  e.g. set the first element to 0 (without loss of generality?)
-    set.seed(seed)
     r <- rnorm(n-i+1)
     rexp <- exp(r)
     mat[(i:n), i] <- sqrt(rexp/sum(rexp))
@@ -341,15 +195,15 @@ deseq_noShrinkL2  =  readRDS(paste0(path, "deseq_noShrink.rds"))
   deseq_noShrink  =    deseq_noShrinkL2*log(2)
 
   ####################################################
-  rrl    =   dd_long(rr,   true_param,label="rr")
-  rrzil  =   dd_long(rrzi, true_param,label="rrzi")
-  usl    =   dd_long(us,  true_param,label="us")
-  uszil  =   dd_long(uszi, true_param,label="uszi")
-  deseql =   dd_long(deseq, true_param,label="deseq")
-  deseq_noShrinkl =   dd_long(deseq_noShrink, true_param,label="deseq_NS")
+  rrl    =   dd_long(rr,   true_param,label="RR_nozi")
+  rrzil  =   dd_long(rrzi, true_param,label="RR")
+  usl    =   dd_long(us,  true_param,label="US_nozi")
+  uszil  =   dd_long(uszi, true_param,label="US")
+  deseql =   dd_long(deseq, true_param,label="DE")
+  deseq_noShrinkl =   dd_long(deseq_noShrink, true_param,label="DE_noSk")
   
-  nbmml  =   dd_long(nbmm,  true_param,label="nbmm")
- #zinbmml =   dd_long(zinbmm, true_param,label="zinbmm")
+  nbmml  =   dd_long(nbmm,  true_param,label="NB")
+ #zinbmml =   dd_long(zinbmm, true_param,label="ZINB")
   ####################################################
  dd = lst(true_param,rr, rrzi, us, uszi, deseq, deseq_noShrink, nbmm)#, zinbmm)
   ##convert to long format
@@ -371,13 +225,13 @@ deseq_noShrinkL2  =  readRDS(paste0(path, "deseq_noShrink.rds"))
  
   
   error = list(
-    rr      =   error_cal(rr, true_param, model = "rr"),
-    rrzi    =   error_cal(rrzi, true_param, model = "rrzi"),
-    us      =   error_cal(us, true_param, model = "us"),
-    uszi    =   error_cal(uszi, true_param, model = "uszi"),
-    deseq   =   error_cal(deseq, true_param, model = "deseq"),
-    deseq_noShrink   =   error_cal(deseq_noShrink, true_param, model = "deseq_NS"),
-    nbmm    =   error_cal(nbmm, true_param, model = "nbmm")#,
+    rr      =   error_cal(rr, true_param, model = "RR_nozi"),
+    rrzi    =   error_cal(rrzi, true_param, model = "RR"),
+    us      =   error_cal(us, true_param, model = "US_nozi"),
+    uszi    =   error_cal(uszi, true_param, model = "US"),
+    deseq   =   error_cal(deseq, true_param, model = "DE"),
+    deseq_noShrink   =   error_cal(deseq_noShrink, true_param, model = "DE_noSk"),
+    nbmm    =   error_cal(nbmm, true_param, model = "NB")#,
     #zinbmm  =   error_cal(zinbmm, true_param, model = "ZINB")
   ) 
   
@@ -498,17 +352,16 @@ get_theta_corrRR <- function(d, n, logsdvec) {
   return(theta)
 }
 
+
 deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
                      minReplicatesForReplace = Inf, 
                      cooksCutoff = FALSE,
                      independentFiltering = FALSE,
-                     do_shrinkage =  "yes", 
-                     design   = ~group,
-                     shrinkage_method="normal",
-                     ntaxa){
+                     do_shrinkage =  "yes",  
+                     shrinkage_method="normal"){
   
   #check otu table is in otu by samples format
-  if(nrow(countdata) != ntaxa){
+  if(all((met_data$subject)==colnames(countdata)) == FALSE){
     countdata = t(countdata)
   }
   
@@ -518,7 +371,7 @@ deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
   met_data= met_data[keep, ]
   
   # call deseq
-  dds <- DESeqDataSetFromMatrix(countdata,met_data, design = design)
+  dds <- DESeqDataSetFromMatrix(countdata,met_data, ~group)
   dds$group <- relevel(dds$group, ref = ref_name)
   
   dds <- DESeq(dds,sfType ="poscounts",

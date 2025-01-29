@@ -1,4 +1,5 @@
 library(reformulas)
+library(RhpcBLASctl)
 library(Matrix)
 library(huge)
 library(tidyverse)

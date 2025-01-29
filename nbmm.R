@@ -19,7 +19,7 @@ countdata  =   dd$countdata
 met_dd     =   dd$met_data
 met_dd$dummy = factor(1)
 
-otu_count    =   t(countdata)
+otu_count   =   t(countdata)
 dds        =   DESeqDataSetFromMatrix(otu_count,met_dd, ~group)
 dds        =   DESeq(dds,sfType ="poscounts",minReplicatesForReplace=Inf)
 normalizer =   sizeFactors(dds)

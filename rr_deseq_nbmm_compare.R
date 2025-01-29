@@ -11,16 +11,40 @@ strg  =   c("/100_300/","/150_500/", "/200_600/")
 titles  =  c("50 subjects per group and 300 taxa",
              "75 subjects per group and 500 taxa",
              "100 subjects per group and 600 taxa")
-
-
-n = 10; p1  =   p2   =  p3 =  p4  = p5  = list()
-
-lapply(dd$dd,dim)
-
+########################################################
+n = 11; p1  =   p2   =  p3 =  p4  = p5  = p6 = list()
 for(i in 1:length(strg)){
-  i = 3
-  path  =   paste0(getwd(),"/cov2",strg[[i]])
+  path  =   paste0(getwd(),strg[[i]])
   dd    =   load_data(path) 
+  
+  conf =  dd$confint
+  ddd  = do.call(rbind,conf)
+  ddd  =  ddd %>%
+          filter(ddd$model != "deseq_NS" )
+
+ p6[[i]] = ggplot(ddd, aes(x = param_name, y = average_estimate, color = model, group = model)) +
+    geom_point(size = 1, alpha = 0.5) +  # Adjust point size and transparency
+    geom_line() +   
+    geom_point(aes(x = param_name, y = true_param, color = "true group effect"), 
+               size = 1.5, shape = 17) +   
+    scale_color_manual(
+      values = c("blue", "red", "green", "black", "purple", "orange", "cyan"),  
+      name = "Model"
+    ) +  
+    labs(title = titles[[i]],#"Comparison of averages of effect size estimates
+                      #for each model with true effect side",
+         x = "Taxa",   
+         y = "Average group effect size estimate across simulations",
+         color = "Model") +   
+    theme_bw(base_size = n) +  
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      panel.grid = element_blank(),
+      axis.text.x = element_blank(),  
+      axis.ticks.x = element_blank(),
+      text = element_text(size = n, family = "Roboto")
+    ) 
+
   #####################################################
   mse   =   err_extract(dd, "avg_mse")
   bias  =   err_extract(dd, "avg_bias")
@@ -89,7 +113,24 @@ for(i in 1:length(strg)){
     custom_theme(n)
 }
 
-p1[[1]]|p1[[2]]|p1[[3]]
+
+combined_plot <- (p6[[1]]|p6[[2]]|p6[[3]]) + plot_layout(guides = "collect") &
+  theme(legend.position='bottom')
+
+#+  plot_annotation(tag_levels = "")
+
+
+(p6[[1]]|p6[[2]]|p6[[3]]) +  plot_layout(guides = "collect") +  
+  plot_annotation(
+  x = "X Axis Label"
+)
+
+(p6[[1]] + p6[[2]] +p6[[3]]) +
+  plot_annotation(
+  caption = 'made with patchwork',
+  theme = theme(plot.title = element_text(size = 16))
+)
+p1[[1]]|p1[[2]]|p1[[3]] + 
 p2[[1]]|p2[[2]]|p2[[3]]
 
 p1[[1]]|p2[[1]]
@@ -439,3 +480,87 @@ mean(cov$coverage)
 cov2 = coverage_cal(deseq_para_conf)
 mean(cov2$coverage)
 ###################################################################
+dd_list  = list()
+for(i in 1:length(strg)){
+  path    =   paste0(getwd(),strg[[i]])
+  dd      =   load_data(path) 
+  dd$dd$true_param
+  
+  conf    =   dd$confint
+  ddd     =  do.call(rbind,conf)
+  ddd$type  =  rep(i, nrow(ddd))
+  dd_list[[i]]  =  dd
+  #%>%
+  # filter(ddd$model != "deseq_NS" )
+}
+
+df       =   data.frame(do.call(rbind, dd_list))
+df$type  =   factor(df$type)
+df$param_name  =   factor(df$param_name)
+str(df)
+df$type  =   as.factor(df$type, levels = unique(df$type))
+
+ddf     =  df %>% 
+  filter(type == plt_title[[2]])
+
+path    =   paste0(getwd(),strg[[2]])
+dd  =   load_data(path) 
+conf =  dd$confint
+df       =   do.call(rbind, conf)
+
+class(df)
+
+df =  rbind(dd_list[[1]],dd_list[[2]],dd_list[[3]])
+ggplot(df, aes(x = param_name, y = average_estimate, color = model, group = model)) +
+  geom_point(size = 1, alpha = 0.5) +  
+  geom_line()  +
+  facet_wrap(~type)
+
+#geom_point(aes(x = param_name, y = true_param, color = "True Parameter"), 
+#           size = 1, shape = 17) +   
+#scale_color_manual(
+#  values = c("blue", "red", "green", "black", "purple", "orange", "cyan"),  
+#  name = "Model"
+#) + 
+# facet_wrap(~type)
+
+
+str(df)
+dd_list
+View(dd_list[[2]])
+
+
+length(unique(dd_list[[1]]$param_name))
+df$model  = as.factor(df$model)
+
+
+df = do.call(rbind, ddd_list)
+
+df$ti =  factor(rep(titles,c(1800,3000,3600)), 
+                levels = titles)
+ggplot(df, aes(x = param_name, y = average_estimate, color = model, group = model)) +
+  geom_point(size = 1, alpha = 0.5) +  
+  geom_line() +   
+  geom_point(aes(x = param_name, y = true_param, color = "True Parameter"), 
+             size = 1, shape = 17) +   
+  scale_color_manual(
+    values = c("blue", "red", "green", "black", "purple", "orange", "cyan"),  
+    name = "Model"
+  ) + 
+  facet_wrap(~ti)
+
+labs(#title = titles[[i]],#"Comparison of averages of effect size estimates
+  #for each model with true effect side",
+  x = "Taxa",   
+  y = "Average group effect size estimate across simulations",
+  color = "Model") +   
+  theme_bw(base_size = n) +  
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    panel.grid = element_blank(),
+    axis.text.x = element_blank(),  
+    axis.ticks.x = element_blank(),
+    text = element_text(size = n, family = "Roboto")
+  ) 
+####################################################################  
+
