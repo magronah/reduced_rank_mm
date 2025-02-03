@@ -1,3 +1,28 @@
+load_models <- function(path, filenames) {
+  file_paths <- paste0(path, filenames)
+  mod_list  <- lapply(file_paths, readRDS)
+}
+
+
+
+my_aicc_fun  <- function(mod){
+  
+  loglik      =   as.numeric(logLik(mod))
+  num_params  =   attr(logLik(mod), "df")  
+  correction  =   2*num_params*(num_params+1)/(nobs(mod) - num_params -  1)
+  
+  if(is.na(loglik)){
+    loglik      =    as.numeric(mod$obj$fn())
+    aic         =    2*(loglik) +  2*(num_params)
+    aicc        =    aic   +  correction
+    return(aicc)
+  }else{
+    aic         =   -2*(loglik) +  2*(num_params)
+    correction  =   2*num_params*(num_params+1)/(nobs(mod) - num_params -  1)
+    aicc        =   aic   +  correction
+    return(aicc)
+  }
+}
 # filter_fun <- function(countdata, metadata,abund_thresh=10, sample_thresh=5){
 #   # if( nrow(metadata) != ncol(countdata)){
 #   #   countdata =  (countdata)
@@ -6,6 +31,62 @@
 #   countdata = countdata[keep,]
 #   as.data.frame(t(countdata))
 # }
+
+#'
+#' @param mod 
+#' @param ntaxa 
+#' @param conf_level 
+#'
+#' @return
+#' @export
+#' 
+#' @examples
+wald_confint = function(mod, conf_level = .95, in_sd = 1){
+  pred    =   predict(mod, type = "latent", se.fit = TRUE) 
+  est     =   pred$fit
+  sd_err  =   pred$se.fit
+  
+  # Calculate z-score for the desired confidence level
+  z_score    =    qnorm(conf_level + (1 - conf_level)/2)
+  
+  # Calculate confidence intervals
+  dd_full    =    data.frame(est_param =   est,
+                             lwr       =   est - z_score*in_sd*sd_err,
+                             upr       =   est + z_score*in_sd*sd_err)
+  
+  # Calculate p-values
+  z_stat = est / sd_err
+  p_values = 2 * (1 - pnorm(abs(z_stat)))  # Two-tailed p-value
+  
+  dd_full$pvalue = p_values
+  
+  dd_full
+}
+
+##############################################
+extract_grp_effect  =  function(dd_full,ntaxa){
+  indx       =    seq(2, (2*ntaxa), 2)
+  dd         =    dd_full[indx, ]
+  dd$width    =    dd$upr  -  dd$lwr 
+  # Add parameter names
+  dd$param_name =   factor(paste0("taxon",1:ntaxa),
+                           levels = paste0("taxon",1:ntaxa))
+  dd
+}
+
+deseq_wald_confint = function(deseq_est, true_param_dd,conf_level = .95,model = "deseq_wald"){
+  foldchange =  2^deseq_est$log2FoldChange
+  dd         =  data.frame(foldchange = foldchange)
+  z_score    =    qnorm(conf_level + (1 - conf_level)/2)
+  sd_err     =   deseq_est$lfcSE
+  dd$lwr     =   foldchange  -  z_score*sd_err
+  dd$upr     =   foldchange  +  z_score*sd_err
+  dd$model   =  rep(model,nrow(dd)) 
+  dd$param_name  =  deseq_est$param_name
+  dd$true_param  =   true_param_dd$true_param
+  dd
+}
+
 
 custom_theme <- function(n) {
   theme_bw(base_size = n) +

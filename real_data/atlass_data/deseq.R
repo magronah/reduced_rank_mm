@@ -1,23 +1,22 @@
 library(RhpcBLASctl)
 library(glmmTMB)
 ###########################################################
-path   =   paste0(getwd(),"/real_data/autism_data/")
+path   =   paste0(getwd(),"/real_data/atlass_data/")
 source(paste0(path,"prep_data.R"))
 ##############################################################
 ddd     =    t(countdata)
-#param   =    coef(pp$object)
+param   =    coef(pp$object)
 result  =    pp$result
 res     =    list()
 
-
 for(i in 1:ncol(ddd)){
   y      =   ddd[,i]
-  modA   =   glmmTMB(y ~ group  + offset(normalizer), 
+  modA   =   glmmTMB(y ~ group + age + offset(normalizer), 
                      data = meta_dd, 
                      family = nbinom2())
   
   
-  modB1  =   glmmTMB(y ~ group + offset(normalizer), 
+  modB1  =   glmmTMB(y ~ group + age + offset(normalizer), 
                      data   = meta_dd, 
                      family = nbinom2(),
                      doFit  = FALSE)
@@ -26,23 +25,21 @@ for(i in 1:ncol(ddd)){
   
   pars <- modB2$env$par
   
-  pars[names(pars) == "beta"]    <-  log(2)*c(result$intercept[[i]],
-                                              result$log2FoldChange[[i]])
-  
+  pars[names(pars) == "beta"]    <-  log(2)*as.numeric(param[i,])
   pars[names(pars) == "betadisp"] <- log(1/result$dispersion[[i]])
-  # 
-       par2     <-   modA$fit$par
+  
+  par2     <-   modA$fit$par
   
   num_params  =   attr(logLik(modA), "df")  
   aic         =   2*(modB2$fn(pars)) +  2*(num_params)
   correction  =   2*num_params*(num_params+1)/(length(y) - num_params -  1)
   
   res[[i]]  = list(deseq_LL     =    modB2$fn(pars),
-                    glmmTMB_LL  =    modB2$fn(par2), 
-                    params  =    cbind(deseq = pars, glmmTMB = par2),
-                    AIC     =    aic,
-                    AICc    =    aic +  correction,
-                    mod     =    modA)
+                   glmmTMB_LL  =    modB2$fn(par2), 
+                   params  =    cbind(deseq = pars, glmmTMB = par2),
+                   AIC     =    aic,
+                   AICc    =    aic +  correction,
+                   mod     =    modA)
 }
 
 ####################################################################

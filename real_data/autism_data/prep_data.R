@@ -1,15 +1,15 @@
 library(tidyr)
 library(tidyverse)
 library(DESeq2)
-library(glmmTMB)
-library(NBZIMM)
+# library(glmmTMB)
+# library(NBZIMM)
 ##############################################################
 path1   =   paste0(getwd(),"/real_data/")
 source(paste0(path1,"/fun.R"))
 ##############################################################
-data        =   readRDS(paste0(path,"autism_data/aut_data.rds"))
-metadata    =   readRDS(paste0(path,"autism_data/aut_metadata.rds"))
-taxa_ex     =   readRDS(paste0(path,"autism_data/taxa_exclude.rds"))
+data        =   readRDS(paste0(path1,"autism_data/aut_data.rds"))
+metadata    =   readRDS(paste0(path1,"autism_data/aut_metadata.rds"))
+taxa_ex     =   readRDS(paste0(path1,"autism_data/taxa_exclude.rds"))
 taxa_ex     
 ##############################################################
 nam        =  "PRJNA644763"
@@ -25,7 +25,14 @@ dd_fil     =  t(dd_fil) %>%
 
 dd_filt    =  t(dd_fil)  %>% 
               as.data.frame()
-dim(dd_filt)
+dd         =   t(dd_filt)
+ntax       =   ncol(dd)
+##############################################################
+dd_long    =   df_long(dd, otu_names = "sp", 
+                       subject_name = "subject", 
+                       ntaxa=ntax)
+
+dd_long    =   left_join(dd_long, meta_dd, by ="subject")  
 ###########################################################
 pp   =  deseqfun(dd_filt,meta_dd,alpha_level=0.1,
                  ref_name="ASD", 
@@ -33,7 +40,14 @@ pp   =  deseqfun(dd_filt,meta_dd,alpha_level=0.1,
 ###########################################################
 countdata  =  pp$data$countdata
 meta_dd    =  pp$data$meta_data
-
-meta_dd$normalizer =   sizeFactors(pp$object)
+normalize_fac =    sizeFactors(pp$object)
+meta_dd$normalizer  =   normalize_fac
 ###########################################################
+normalizer =   data.frame(normalizer = normalize_fac) %>% 
+  rownames_to_column("subject")
 
+df    =   left_join(dd_long, normalizer, by ="subject")  
+###########################################################
+gprior  <- data.frame(prior = "gamma(2, 2.5)",
+                      class = "theta_sd",
+                      coef = "")

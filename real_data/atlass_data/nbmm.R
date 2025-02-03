@@ -1,8 +1,8 @@
 library(glmmTMB)
 library(NBZIMM)
 ##############################################################
-path   =   paste0(getwd(),"/real_data/atlass_data")
-source(paste0(path,"/prep_data.R"))
+path   =   paste0(getwd(),"/real_data/atlass_data/")
+source(paste0(path,"prep_data.R"))
 ##############################################################
 ddd   =   t(countdata)
 meta_dd$dummy  =  factor(1)
@@ -15,7 +15,7 @@ tt = system.time({
                  niter = 100)
 })
 ################################################################
-file_path  =  paste0(path,"atlass_data/results/")
+file_path  =  paste0(path,"results/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

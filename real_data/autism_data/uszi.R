@@ -1,7 +1,7 @@
 library(RhpcBLASctl)
 library(glmmTMB)
 ###########################################################
-path   =   paste0(getwd(),"/real_data/CrohnD_data/")
+path   =   paste0(getwd(),"/real_data/autism_data/")
 source(paste0(path,"prep_data.R"))
 ################################################################
 par_ctrl <- glmmTMBControl(
@@ -11,7 +11,7 @@ par_ctrl <- glmmTMBControl(
 options(glmmTMB_openmp_debug = TRUE)
 blas_set_num_threads(1)
 ################################################################
-form      =   count ~ 1 + age + us(1 + group|taxon) + offset(normalizer)
+form      =   count ~ 1  + us(1 + group|taxon) + offset(normalizer)
 ###############################################################
 tt1 = system.time(
   fit1 <- glmmTMB(formula = form, 
