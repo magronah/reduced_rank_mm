@@ -63,9 +63,14 @@ H1f <- as.matrix(H1f_tmp$mat)
 sdvec <- sqrt(diag(solve(H1f)))
 sdvec0 <- sqrt(diag(solve(H1)))
 
-MASS::eqscplot(log10(sdvec0), log10(sdvec),
-               xlab = "log10(original Hessian",
-               ylab = "log10(PD-ified Hessian")
+sdvec1 <- sdvec0
+sdvec1[is.nan(sdvec1)] <- 1000
+MASS::eqscplot(log10(sdvec1), log10(sdvec),
+               xlab = "log10(original Hessian)",
+               ylab = "log10(PD-ified Hessian)",
+               col = c("black","red")[as.numeric(is.nan(sdvec0))+1],
+               main = "SDs of top-level params (beta, theta)",
+               cex=3)
 abline(a=0, b=1, lty = 2)
 
 sdr <- TMB::sdreport(dd$obj)
@@ -75,3 +80,15 @@ sdr <- TMB::sdreport(dd$obj)
 ## the reason is that (on my computer) the Hessian is *negative* definite,
 ## not singular, so we can invert it -- but, as shown above, the results
 ## aren't necessarily correct ...
+
+try(chol(H1))
+ss <- solve(H1)
+ee <- eigen(H1)$values
+any(abs(ee)<1e-5)  ## no eigenvalues near zero
+any(ee<0)          ## but some are negative!
+ee[ee<0]
+
+pp <- predict(dd, type = "latent", se.fit = TRUE)
+ord <- order(pp$fit)
+with(pp, matplot(seq_along(fit), cbind(fit[ord], fit[ord]-se.fit[ord], fit[ord]+se.fit[ord]), type = "p",
+     pch = 16, col = c(1,2,2)))
