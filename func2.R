@@ -39,10 +39,11 @@ wald_confint = function(mod, conf_level = .95,
   #start_method in glmmTMBControl jitter.sd
   saveRDS(se_vec, file = paste0(path,"full_sdr_",mod_name,".rds"))
   #########################################################
-  full_est     =   mod$fit$parfull
+  full_est  =   mod$fit$parfull
   est       =   full_est[names(full_est) == "b"][grp_ind]
   sd_err    =   se_vec[grp_ind]
   
+
   # Calculate z-score for the desired confidence level
   z_score    =    qnorm(conf_level + (1 - conf_level)/2)
   
@@ -50,7 +51,6 @@ wald_confint = function(mod, conf_level = .95,
   dd      =    data.frame(est_param =   est,
                           lwr       =   est - z_score*in_sd*sd_err,
                           upr       =   est + z_score*in_sd*sd_err)
-  
   # Calculate p-values
   z_stat   =  est / sd_err
   p_values =  2 * (1 - pnorm(abs(z_stat)))  # Two-tailed p-value
@@ -62,6 +62,8 @@ wald_confint = function(mod, conf_level = .95,
   dd
 }
 #########################################################
+
+>>>>>>> 8183dfd5efe70122dc1f3a91a621aa5400d514d3
 generate_increasing_total_variance <- function(tt_logvar, tt_cor, rr_logvar, steps = 10) {
   # Ensure input validity
   if (length(tt_logvar) != 2) {

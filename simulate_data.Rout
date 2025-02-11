@@ -20,6 +20,7 @@ Type 'q()' to quit R.
 [Previously saved workspace restored]
 
 > library(reformulas)
+> library(RhpcBLASctl)
 > library(Matrix)
 > library(huge)
 > library(tidyverse)
@@ -221,68 +222,3 @@ Folder created at: /project/6006158/agronahm/reduced_rank_mm/200_600/
 +                       family     =  nbinom2, 
 +                       return_val = "pars"
 + )
-> stopifnot(b_true_all  == pars1[names(pars1) == "b"])
-> ####################################################################  
-> #### simulate count data no zero inflation
-> count_list <- simulate_new(RHSForm(form, as.form = TRUE),
-+                          newdata   =  dd,
-+                          newparams =  true_pars1,
-+                          family    =  nbinom2,
-+                          nsim      =  nsim,
-+                          seed   =  seed)
-> 
-> res_dd1 = foreach(i = 1:length(count_list))  %do% {
-+   dd$count = count_list[[i]]
-+   dd
-+ }
-> names(res_dd1)  =   paste0("sim", 1:nsim)
-> ####################################################################  
-> #### convert to otu table
-> res_dd2   =  otu_meta_lst_fun(res_dd1)
-> ####################################################################  
-> saveRDS(true_b, file = paste0(path,"true_param.rds"))
-> saveRDS(res_dd1, file = paste0(path,"sim_count_list_nozi.rds"))
-> saveRDS(res_dd2, file = paste0(path,"otu_meta_list_nozi.rds"))
-> ####################################################################  
-> true_pars3          =   c(true_pars1, thetazi =  log(diff(qlogis(c(0.12, 0.92)))/4))
-> set.seed(seed)
-> true_pars3$betazi   =  qlogis(((0.12) +(0.92))/2)
-> #########################################################################
-> #### Sanity check
-> pars3 <- simulate_new(RHSForm(form, as.form = TRUE), nsim = 1, seed = NULL,
-+                      newdata    =  dd,
-+                      newparams  =  true_pars3,
-+                      family     =  nbinom2, 
-+                      ziformula  = ~1 + (1|taxon),
-+                      return_val = "pars"
-+ )
-> stopifnot(theta_true ==  pars3[names(pars3)=="theta"])
-> stopifnot(b_true_all ==  pars3[names(pars3)=="b"])
-> 
-> ################## simulate count data zero inflation per taxa
-> ztaxa_count_list <- simulate_new(RHSForm(form, as.form = TRUE),
-+                             newdata   = dd,
-+                             newparams = true_pars3,
-+                             family    =  nbinom2,
-+                             ziformula = ~1 + (1|taxon),
-+                             nsim      =  nsim,
-+                             seed      =  seed)
-> 
-> ztaxa_res_dd1 = foreach(i = 1:length(ztaxa_count_list))  %do% {
-+   dd$count = ztaxa_count_list[[i]]
-+   dd
-+ }
-> names(ztaxa_res_dd1)  =   paste0("sim", 1:nsim)
-> ####################################################################  
-> #### convert to otu table
-> ztaxa_res_dd2   =  otu_meta_lst_fun(ztaxa_res_dd1)
-> ####################################################################  
-> saveRDS(ztaxa_res_dd1, file = paste0(path,"sim_count_list_withzi_taxa.rds"))
-> saveRDS(ztaxa_res_dd2, file = paste0(path,"otu_meta_list_withzi_taxa.rds"))
-> 
-> mean_count  =   colMeans(do.call(rbind,lapply(ztaxa_res_dd2, function(x) (x$countdata))))
-> saveRDS(mean_count, file = paste0(path, "mean_count.rds"))
-> 
-> proc.time()
-    user   system  elapsed 
-2707.618  229.063 3000.105 

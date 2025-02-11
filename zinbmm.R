@@ -1,3 +1,5 @@
+library(nlme)
+library(RhpcBLASctl)
 library(NBZIMM)
 library(DESeq2)
 library(Matrix)
@@ -23,18 +25,12 @@ otu_count    =   t(countdata)
   dds        =   DESeq(dds,sfType ="poscounts",minReplicatesForReplace=Inf) 
   normalizer =   sizeFactors(dds) 
 
-#print(pp <- .libPaths())
-#packageVersion("nlme")
-#for (p in pp) {
-#    print(packageVersion("nlme", lib.loc = p))
-#}
-
 mod        =   mms(y = countdata, fixed = ~group + offset(normalizer),
                       random =  ~ 1|dummy,
                       zi_fixed = ~1,
                       data = met_dd, method = "zinb")
 
-file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","zinbmm/")
+file_path  =  paste0("~/scratch/data/",nsubj,"_",ntaxa,"/zinbmm/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)
@@ -46,11 +42,5 @@ if (!dir.exists(file_path)) {
 
 
 saveRDS(mod, file=paste0(file_path,"mod",i,".rds"))
-
-
-#saveRDS(mod, file=paste0("~/scratch/dataset/RR/100_300/zinbmm/mod",i,".rds"))
-
-
-
 
 
