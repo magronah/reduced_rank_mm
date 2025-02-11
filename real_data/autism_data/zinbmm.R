@@ -1,14 +1,14 @@
 library(glmmTMB)
 library(NBZIMM)
 ##############################################################
-path   =   paste0(getwd(),"/real_data/CrohnD_data/")
+path   =   paste0(getwd(),"/real_data/autism_data/")
 source(paste0(path,"prep_data.R"))
 ##############################################################
 ddd   =   t(countdata)
 meta_dd$dummy  =  factor(1)
 ###########################################################
 tt = system.time({
-  mod    =   mms(y = ddd, fixed = ~group + age + offset(normalizer),
+  mod    =   mms(y = ddd, fixed = ~group + offset(normalizer),
                  random = ~ 1 | dummy,
                  zi_fixed = ~1,
                  data = meta_dd, 
@@ -40,15 +40,15 @@ res1   =  list()
 taxa_name  =  names(mod$fit)
 
 for(i in 1:length(taxa_name)){
-  y  =  dd[,taxa_name[i]]
+  y  =  ddd[,i]
   
-  modA   =   glmmTMB(y ~ group + age + (1 | dummy) + offset(normalizer), 
+  modA   =   glmmTMB(y ~ group  + (1 | dummy) + offset(normalizer), 
                      data = meta_dd, 
                      ziformula = ~1,
                      family = nbinom2())
   
   
-  modB1  =   glmmTMB(y ~ group + age + (1 | dummy) + offset(normalizer), 
+  modB1  =   glmmTMB(y ~ group + (1 | dummy) + offset(normalizer), 
                      data   = meta_dd, 
                      ziformula = ~1,
                      family = nbinom2(),
@@ -72,7 +72,7 @@ for(i in 1:length(taxa_name)){
   aic      =   2*(modB2$fn(pars)) +  2*(num_params)
   correction  =   2*num_params*(num_params+1)/(length(y) - num_params -  1)
   
-  res1[[i]]  = list(zinbmm_LL    =    modB2$fn(pars),
+  res1[[i]]  = list(zinbmm_LL   =    modB2$fn(pars),
                    glmmTMB_LL   =    modB2$fn(par2), 
                       params    =    cbind(NBZIMM = pars, glmmTMB = par2),
                           AIC   =    aic,
@@ -83,45 +83,3 @@ for(i in 1:length(taxa_name)){
 zinbmm_aicc   <-   sum(sapply(res1, `[[`, "AICc"))
 saveRDS(zinbmm_aicc, file=paste0(file_path,"zinbmm_aicc.rds"))
 saveRDS(res1, file=paste0(file_path,"zinbmm_res.rds"))
-#########################################################
-##' run those that NBMM could not fit 
-##' (I suppose due to small count values-check this!) 
-##' in glmmTMB
-if(FALSE){
-diff = setdiff(colnames(ddd), taxa_name)
-if(is.null(diff)){
-  
-  zinbmm_aicc   <-   sum(sapply(res1, `[[`, "AICc"))
-  saveRDS(zinbmm_aicc, file=paste0(file_path,"zinbmm_aicc.rds"))
-  saveRDS(res1, file=paste0(file_path,"zinbmm_res.rds"))
-  
-}else{
-  
-  res2 = list()
-  for(i in 1:length(diff)){
-    y  =  ddd[,diff[i]]
-    
-    mod   =   glmmTMB(y ~ group + age + (1 | dummy) + offset(normalizer), 
-                      data = meta_dd, 
-                      ziformula = ~1,
-                      family = nbinom2())
-    
-    num_params  =   attr(logLik(mod), "df")  
-          LL    =   as.numeric(logLik(mod))
-       aic      =   -2*LL +  2*num_params
-    correction  =    2*num_params*(num_params+1)/(length(y) - num_params -  1)
-    
-    
-    res2[[i]] = list(mod    =   mod,
-                     AIC    =   aic,
-                     AICc   =   aic + correction,
-                     LL     =   LL)
-  }
-  ####################################################################
-  zinbmm_aicc <-  sum(sapply(res1, `[[`, "AICc")) + sum(sapply(res2, `[[`, "AICc"))
-       res    =   list(res1, res2)
- 
-  saveRDS(zinbmm_aicc, file=paste0(file_path,"zinbmm_aicc.rds"))
-  saveRDS(res, file=paste0(file_path,"zinbmm_res.rds"))
-}
-}

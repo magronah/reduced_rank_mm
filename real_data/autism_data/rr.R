@@ -11,7 +11,7 @@ par_ctrl <- glmmTMBControl(
 options(glmmTMB_openmp_debug = TRUE)
 blas_set_num_threads(1)
 ################################################################
-form =  count ~ 1 + age + us(1 + group|taxon) +
+form =  count ~ 1 + us(1 + group|taxon) +
                rr(0 + taxon | subject,2) +  offset(normalizer)
 ################################################################
 tt = system.time(

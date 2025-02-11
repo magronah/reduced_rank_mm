@@ -1,14 +1,14 @@
 library(glmmTMB)
 library(NBZIMM)
 ##############################################################
-path   =   paste0(getwd(),"/real_data/CrohnD_data/")
+path   =   paste0(getwd(),"/real_data/autism_data/")
 source(paste0(path,"prep_data.R"))
 ##############################################################
 ddd   =   t(countdata)
 meta_dd$dummy  =  factor(1)
 ###########################################################
 tt = system.time({
-  mod    =   mms(y = ddd, fixed = ~group + age + offset(normalizer),
+  mod    =   mms(y = ddd, fixed = ~group  + offset(normalizer),
                  random = ~ 1 | dummy,
                  data = meta_dd, 
                  method = "nb",
@@ -38,14 +38,14 @@ par_list = lapply(mod$fit, function(x){
 taxa_name  =  names(mod$fit)
 
 for(i in 1:length(taxa_name)){
-  y  =  dd[,taxa_name[i]]
+  y  =  ddd[,i]
   
-  modA   =   glmmTMB(y ~ group + age + (1 | dummy) + offset(normalizer), 
+  modA   =   glmmTMB(y ~ group + (1 | dummy) + offset(normalizer), 
                      data = meta_dd, 
                      family = nbinom2())
   
   
-  modB1  =   glmmTMB(y ~ group + age + (1 | dummy) + offset(normalizer), 
+  modB1  =   glmmTMB(y ~ group + (1 | dummy) + offset(normalizer), 
                      data   = meta_dd, 
                      family = nbinom2(),
                      doFit  = FALSE)
@@ -67,7 +67,7 @@ for(i in 1:length(taxa_name)){
      aic      =   2*(modB2$fn(pars)) +  2*(num_params)
   correction  =   2*num_params*(num_params+1)/(length(y) - num_params -  1)
 
-  res1[[i]]  = list(nbmm_LL     =    modB2$fn(pars),
+  res1[[i]]  = list(nbmm_LL    =    modB2$fn(pars),
                    glmmTMB_LL  =    modB2$fn(par2), 
                        params  =    cbind(NBZIMM = pars, glmmTMB = par2),
                          AIC   =    aic,
