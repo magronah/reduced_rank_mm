@@ -15,4 +15,5 @@
 
 module load r/4.4.0
 
-R CMD BATCH deseqres.R  deseqres.Rout
+R CMD BATCH simulate_data.R  simulate_data.Rout
+

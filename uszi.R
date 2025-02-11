@@ -50,7 +50,7 @@ fit <- tryCatch({
 })
 
 
-file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","uszi/")
+file_path  =  paste0("~/scratch/data/",nsubj,"_",ntaxa,"/","uszi/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

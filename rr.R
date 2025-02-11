@@ -51,7 +51,7 @@ mod  <- tryCatch({
 })
 
 
-file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","rr/")
+file_path  =  paste0("~/scratch/data/",nsubj,"_",ntaxa,"/","rr/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

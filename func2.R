@@ -1,3 +1,52 @@
+#'
+#' @param mod 
+#' @param ntaxa 
+#' @param conf_level 
+#'
+#' @return
+#' @export
+#' 
+#' @examples
+wald_confint = function(mod, conf_level = .95, 
+                        in_sd = 1, ntaxa,
+                        mean_count, mod_name,
+                        path){
+  
+  #pred    =   predict(mod, type = "latent", se.fit = TRUE) 
+  ########################################################
+  ss <- TMB::sdreport(mod$obj, getJointPrecision = TRUE)
+  saveRDS(ss, file = paste0(path,"sdreport_",mod_name,".rds"))
+  ########################################################
+  ss$jointPrecision <- as(ss$jointPrecision, "sparseMatrix")
+  se_vec <- sqrt(diag(solve(ss$jointPrecision)))
+  
+  saveRDS(se_vec, file = paste0(path,"full_sdr_",mod_name,".rds"))
+  ########################################################
+  grp_ind      =   seq(2, 2*(ntaxa), 2)
+  full_est     =   mod$fit$parfull
+     est       =   full_est[names(full_est) == "b"][grp_ind]
+     sd_err    =   se_vec[grp_ind] 
+  # Calculate z-score for the desired confidence level
+  z_score    =    qnorm(conf_level + (1 - conf_level)/2)
+  
+  # Calculate confidence intervals
+     dd      =    data.frame(est_param =   est,
+                             lwr       =   est - z_score*in_sd*sd_err,
+                             upr       =   est + z_score*in_sd*sd_err)
+  
+  # Calculate p-values
+  z_stat   =  est / sd_err
+  p_values =  2 * (1 - pnorm(abs(z_stat)))  # Two-tailed p-value
+  
+  dd$pvalue  =  p_values
+  dd$width   =   dd$upr  - dd$lwr
+  dd$mean_count  =  as.numeric(mean_count)
+  dd$param_name  =  names(mean_count)
+  dd
+}
+
+
+
 generate_increasing_total_variance <- function(tt_logvar, tt_cor, rr_logvar, steps = 10) {
   # Ensure input validity
   if (length(tt_logvar) != 2) {
