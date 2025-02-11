@@ -62,8 +62,6 @@ wald_confint = function(mod, conf_level = .95,
   dd
 }
 #########################################################
-
->>>>>>> 8183dfd5efe70122dc1f3a91a621aa5400d514d3
 generate_increasing_total_variance <- function(tt_logvar, tt_cor, rr_logvar, steps = 10) {
   # Ensure input validity
   if (length(tt_logvar) != 2) {
