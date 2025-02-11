@@ -3,9 +3,10 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 library(AICcmodavg)
+library(here)
 ##############################################################
-path1   =   paste0(getwd(),"/real_data/")
-source(paste0(path1,"/fun.R"))
+path1   =   paste0("real_data/")
+source(paste0(path1,"fun.R"))
 #########################################################
 # Define filenames to load
 filenames <- c(
@@ -19,10 +20,10 @@ filenames <- c(
 )
 ######################################################################
 # Load models for autism data
-autism_path <- paste0(getwd(), "/real_data/autism_data/results/")
-atlass_path <- paste0(getwd(), "/real_data/atlass_data/results/")
-crohn_path <- paste0(getwd(), "/real_data/CrohnD_data/results/")
-soil_path   <- paste0(getwd(), "/real_data/soil_data/results/")
+autism_path <- paste0("real_data/autism_data/results/")
+atlass_path <- paste0("real_data/atlass_data/results/")
+crohn_path  <- paste0("real_data/CrohnD_data/results/")
+soil_path   <- paste0("real_data/soil_data/results/")
 
 # Load models for autism data
 autism_models <- load_models(autism_path, filenames)
@@ -79,19 +80,91 @@ for(i in 1:length(res)){
 }
 
 (plt[[1]]|plt[[2]])/(plt[[3]]|plt[[4]])
-
 #############################################################
-# Load models for autism data
-filename        <-  "nbmm_mod.rds"
-autism_nbmm_mod <-  load_models(autism_path, filename)
-atlass_nbmm_mod <-  load_models(atlass_path, filename)
-crohn_nbmm_mod <-  load_models(crohn_path, filename)
-soil_nbmm_mod   <-  load_models(soil_path, filename)
+############Confidence Intervals
+CI_filenames <- c(
+  "CI_rr.rds",
+  "CI_rrzi.rds",
+  "CI_us.rds",
+  "CI_uszi.rds",
+  "CI_nbmm.rds",
+  "CI_zinbmm.rds",
+  "CI_deseq.rds"
+  )
+
+##############################################################
+autism_confint <-  load_models(autism_path, CI_filenames)
+atlass_confint <-  load_models(atlass_path, CI_filenames)
+crohn_confint  <-  load_models(crohn_path, CI_filenames)
+soil_confint   <-  load_models(soil_path, CI_filenames)
+
+# Assigning names 
+CI_names <- c("RR","RRzi","US","USzi","Nbmm","Zinbmm","DE")
+names(autism_confint)    =   names(atlass_confint)  =    CI_names
+names(crohn_confint)    =   names(soil_confint)    =    CI_names
+CI_list    =   lst(autism_confint,atlass_confint,crohn_confint,soil_confint)
+#################################################################
+combine <- lst(
+  autism_combined =  bind_rows(autism_confint, .id = "type"),
+  atlass_combined =  bind_rows(atlass_confint, .id = "type"),
+  crohn_combined  =  bind_rows(crohn_confint, .id = "type"),
+  soil_combined   =  bind_rows(soil_confint, .id = "type")
+)
+
+combine_filt   <- lapply(combine, filter_complete_separation)
+names(combine_filt) <- names(combine)
+
+################################################################
+pplt  =  list()
+for(i in 1:length(combine_filt)){
+  ddff      =   combine_filt[[i]]
+  plt_tile  =   names(combine_filt)[i]
+  # dd1 <- ddff %>%
+  #   group_by(type) %>%
+  #   summarise(mean_width = range(pvalue, na.rm = TRUE))
+
+  dd <- ddff %>%
+    group_by(type) %>%
+    summarise(mean_width = mean(width, na.rm = TRUE))
+  
+  pplt[[i]] <- ggplot(dd, aes(x=type, y = mean_width, color=type)) +
+              geom_point() +
+              #geom_line() +
+              custom_theme(12) +
+              ggtitle(plt_tile)
+              #theme(axis.ticks.x = element_blank(),   
+             #       axis.text.x = element_blank()) +
+              labs(x = " ", y = "Average confidence width", color = "model") 
+}
+
+(pplt[[1]]|pplt[[2]])/(pplt[[3]]|pplt[[4]]) +   plot_layout(guides = "collect")  
+#################################################################
+meant_count_file  <-  "mean_count.rds"
+autism_mean_count <-  load_models(autism_path, meant_count_file)
+atlass_mean_count <-  load_models(atlass_path, meant_count_file)
+crohn_mean_count  <-  load_models(crohn_path,  meant_count_file)
+soil_mean_count   <-  load_models(soil_path, meant_count_file)
+#################################################################
+
+#mod =autism_models$US
+pppr = lapply(atlass_confint[names(atlass_confint) != "DE"], function(x){ 
+  pval  =   as.numeric(x$pvalue)
+  print(range(pval))
+  x$p_adj <- p.adjust(pval, method = "bonferroni")
+  x} )       
+
+
+pqp=autism_confint[[1]]$pvalue
+p.adjust(pqp, method = "BH")
+
 
 ntaxa_vec    <-    c(autism_mod  =  length(autism_nbmm_mod[[1]]$responses),
                    atlass_mod  =   length(atlass_nbmm_mod[[1]]$responses),
                    crohn_mod  =  length(crohn_nbmm_mod[[1]]$responses),
                    soil_mod    =  length(soil_nbmm_mod[[1]]$responses))
+
+
+
 
 mean_count_list <- list(
                   autism_mod  =  readRDS(paste0(autism_path,"mean_count.rds")),

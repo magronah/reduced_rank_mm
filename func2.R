@@ -1,3 +1,67 @@
+#'
+#' @param mod 
+#' @param ntaxa 
+#' @param conf_level 
+#'
+#' @return
+#' @export
+#' 
+#' @examples
+wald_confint = function(mod, conf_level = .95, 
+                        in_sd = 1, ntaxa,
+                        mean_count, mod_name,
+                        path){
+  
+  grp_ind   =   seq(2, 2*(ntaxa), 2)
+  #pred    =   predict(mod, type = "latent", se.fit = TRUE) 
+  #est     =   pred$fit[grp_ind]
+  #sd_err  =   pred$se.fit[grp_ind]
+  ########################################################
+  ss <- TMB::sdreport(mod$obj, getJointPrecision = TRUE)
+  saveRDS(ss, file = paste0(path,"sdreport_",mod_name,".rds"))
+  #ss  <-  readRDS(paste0(path,"sdreport_",mod_name,".rds"))
+  #########################################################
+  ss$jointPrecision <-  as(ss$jointPrecision, "sparseMatrix")
+  inverse_mat       <-  solve(ss$jointPrecision)
+  
+  if(any(diag(inverse_mat) < 0)){
+    precision_nearPD <-  as.matrix(nearPD(ss$jointPrecision)$mat)
+    precision   <-  as(precision_nearPD, "sparseMatrix")
+    se_vec <- sqrt(diag(solve(precision)))
+  }else{
+    se_vec <- sqrt(diag(inverse_mat))
+  }
+  # Run nearPD
+  #se_vec <- sqrt(diag(solve(nearPD(ss$jointPrecision))))
+  # allFit is another option
+  # https://github.com/glmmTMB/glmmTMB/blob/master/misc/allFit.R
+  #se_vec <- sqrt(diag(solve(ss$jointPrecision)))
+  #start_method in glmmTMBControl jitter.sd
+  saveRDS(se_vec, file = paste0(path,"full_sdr_",mod_name,".rds"))
+  #########################################################
+  full_est     =   mod$fit$parfull
+  est       =   full_est[names(full_est) == "b"][grp_ind]
+  sd_err    =   se_vec[grp_ind]
+  
+  # Calculate z-score for the desired confidence level
+  z_score    =    qnorm(conf_level + (1 - conf_level)/2)
+  
+  # Calculate confidence intervals
+  dd      =    data.frame(est_param =   est,
+                          lwr       =   est - z_score*in_sd*sd_err,
+                          upr       =   est + z_score*in_sd*sd_err)
+  
+  # Calculate p-values
+  z_stat   =  est / sd_err
+  p_values =  2 * (1 - pnorm(abs(z_stat)))  # Two-tailed p-value
+  
+  dd$pvalue  =  p_values
+  dd$width   =   dd$upr  - dd$lwr
+  dd$mean_count  =  as.numeric(mean_count)
+  dd$param_name  =  names(mean_count)
+  dd
+}
+#########################################################
 generate_increasing_total_variance <- function(tt_logvar, tt_cor, rr_logvar, steps = 10) {
   # Ensure input validity
   if (length(tt_logvar) != 2) {
@@ -326,64 +390,65 @@ load_data <- function(path, alpha = 0.05) {
  
   true_param =  readRDS(paste0(path,"true_param.rds"))
   ####################################################
-  rr     =  readRDS(paste0(path, "rr.rds"))
-  rrzi   =  readRDS(paste0(path, "rrzi.rds"))
-  us     =  readRDS(paste0(path, "us.rds"))
-  uszi   =  readRDS(paste0(path, "uszi.rds"))
-  nbmm   =  readRDS(paste0(path, "nbmm.rds"))
-  #zinbmm =  readRDS(paste0(path, "zinbmm.rds"))
+  RR     =  readRDS(paste0(path, "rr.rds"))
+  RRzi   =  readRDS(paste0(path, "rrzi.rds"))
+  US     =  readRDS(paste0(path, "us.rds"))
+  USzi   =  readRDS(paste0(path, "uszi.rds"))
+  NB    =  readRDS(paste0(path, "nbmm.rds"))
+  ZNB   =  readRDS(paste0(path, "zinbmm.rds"))
   
   # rownames(nbmm) =   rownames(zinbmm)  =  rownames(rrzi)
 deseqL2  =  readRDS(paste0(path, "deseq.rds"))
 deseq_noShrinkL2  =  readRDS(paste0(path, "deseq_noShrink.rds"))
 
-  deseq  =    deseqL2*log(2)
-  deseq_noShrink  =    deseq_noShrinkL2*log(2)
+     DE       =    deseqL2*log(2)
+     DE_noSh  =    deseq_noShrinkL2*log(2)
 
   ####################################################
-  rrl    =   dd_long(rr,   true_param,label="rr")
-  rrzil  =   dd_long(rrzi, true_param,label="rrzi")
-  usl    =   dd_long(us,  true_param,label="us")
-  uszil  =   dd_long(uszi, true_param,label="uszi")
-  deseql =   dd_long(deseq, true_param,label="deseq")
-  deseq_noShrinkl =   dd_long(deseq_noShrink, true_param,label="deseq_NS")
+  rrl    =   dd_long(RR,   true_param,label="RR")
+  rrzil  =   dd_long(RRzi, true_param,label="RRzi")
+  usl    =   dd_long(US,  true_param,label="US")
+  uszil  =   dd_long(USzi, true_param,label="USzi")
+  deseql =   dd_long(DE, true_param,label="DE")
+  deseq_noShrinkl =   dd_long(DE_noSh, true_param,label="DE_noSh")
   
-  nbmml  =   dd_long(nbmm,  true_param,label="nbmm")
- #zinbmml =   dd_long(zinbmm, true_param,label="zinbmm")
+  nbmml  =   dd_long(NB,  true_param,label="NB")
+ zinbmml =   dd_long(ZNB, true_param,label="ZNB")
   ####################################################
- dd = lst(true_param,rr, rrzi, us, uszi, deseq, deseq_noShrink, nbmm)#, zinbmm)
+ dd = lst(true_param,RR, RRzi, US, USzi, DE, DE_noSh, NB, ZNB)
   ##convert to long format
- long_dd = list(rr = rrl, rrzi = rrzil, us = usl, 
-                uszi =  uszil, deseq  =  deseql,
-                deseq_noShrink  =  deseq_noShrinkl,
-                nbmm  = nbmml)#, zinbmm  = zinbmml)
+ long_dd = list(RR = rrl, RRzi = rrzil, US = usl, 
+                USzi =  uszil, DE  =  deseql,
+                DE_noSh  =  deseq_noShrinkl,
+                NB  = nbmml, ZNB  = zinbmml)
 
   confint = list(
-    rr      =   para_confint(rrl, true_param, alpha = alpha),
-    rrzi    =   para_confint(rrzil, true_param, alpha = alpha),
-    us      =   para_confint(usl, true_param, alpha = alpha),
-    uszi    =   para_confint(uszil, true_param, alpha = alpha),
-    deseq   =   para_confint(deseql, true_param, alpha = alpha),
-    deseq_noShrink   =   para_confint(deseq_noShrinkl, true_param, alpha = alpha),
-    nbmm    =   para_confint(nbmml, true_param, alpha = alpha)#,
-    #zinbmm  =   para_confint(zinbmml, true_param, alpha = alpha)
+    RR      =   para_confint(rrl, true_param, alpha = alpha),
+    RRzi    =   para_confint(rrzil, true_param, alpha = alpha),
+    US      =   para_confint(usl, true_param, alpha = alpha),
+    USzi    =   para_confint(uszil, true_param, alpha = alpha),
+    DE      =   para_confint(deseql, true_param, alpha = alpha),
+    DE_noSh =   para_confint(deseq_noShrinkl, true_param, alpha = alpha),
+    NB      =   para_confint(nbmml, true_param, alpha = alpha),
+    ZNB     =   para_confint(zinbmml, true_param, alpha = alpha)
   ) 
  
   
   error = list(
-    rr      =   error_cal(rr, true_param, model = "rr"),
-    rrzi    =   error_cal(rrzi, true_param, model = "rrzi"),
-    us      =   error_cal(us, true_param, model = "us"),
-    uszi    =   error_cal(uszi, true_param, model = "uszi"),
-    deseq   =   error_cal(deseq, true_param, model = "deseq"),
-    deseq_noShrink   =   error_cal(deseq_noShrink, true_param, model = "deseq_NS"),
-    nbmm    =   error_cal(nbmm, true_param, model = "nbmm")#,
-    #zinbmm  =   error_cal(zinbmm, true_param, model = "ZINB")
+    RR      =   error_cal(RR, true_param, model = "RR"),
+    RRzi    =   error_cal(RRzi, true_param, model = "RRzi"),
+    US      =   error_cal(US, true_param, model = "US"),
+    USzi    =   error_cal(USzi, true_param, model = "USzi"),
+    DE      =   error_cal(DE, true_param, model = "DE"),
+    DE_noSh   =   error_cal(DE_noSh, true_param, model = "DE_noSh"),
+    NB     =   error_cal(NB, true_param, model = "NB"),
+    ZNB  =   error_cal(ZNB, true_param, model = "ZNB")
   ) 
   
   lst(dd,long_dd, confint, error)
 
 }
+
 
 error_cal <- function(model_est_dd, true_param_dd, model) {
   
@@ -391,22 +456,33 @@ error_cal <- function(model_est_dd, true_param_dd, model) {
     rownames_to_column(var = "param_name")
   merge_ddd     =   left_join(true_param_dd, est_dd, by = "param_name")  
   merge_dd      =   merge_ddd  %>% dplyr::select(-param_name) 
-  error     =   data.frame(t(apply(merge_dd, 1, 
+  errr        =   data.frame(t(apply(merge_dd, 1, 
                                    function(x){(x["true_param"] -  x)})))
+  
+  error        =    errr[, !colnames(errr) %in% "true_param"]
+  variance     =    apply(error, 1, var)
   
   df1       =   data.frame(param_name  =   merge_ddd$param_name,
                            true_param  =   merge_ddd$true_param,
                            bias        =   rowMeans(error),
-                           mse         =   rowMeans(error^2))
+                           mse         =   rowMeans(error^2),
+                           variance    =   variance)
   
   df2     =    data.frame(average_value  =   mean(rowMeans(error)))
   df3     =    data.frame(average_value  =   mean(sqrt(rowMeans(error^2))))
+  df4     =    data.frame(average_value  =   mean(variance))
+  
   
   df1$model   =  rep(model,nrow(df1)) 
   df2$model   =  rep(model,nrow(df2)) 
   df3$model   =  rep(model,nrow(df3)) 
+  df4$model   =  rep(model,nrow(df4)) 
   
-  res     =   lst(full_summary_dd=df1, error, avg_bias = df2, avg_mse = df3)
+  
+  res     =   lst(full_summary_dd =   df1, error, 
+                    avg_bias      =   df2, 
+                      avg_mse     =   df3,
+                       avg_var    =   df4)
   
   return(res)
 }

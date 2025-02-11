@@ -3,36 +3,38 @@ library(tibble)
 library(ggplot2)
 library(tidyverse)
 library(patchwork)
+library(here)
 source("func2.R")
-fig_path=   paste0("fig/")
+fig_path=   "fig/"
 #####################################################
 ####Bias and RMSE calculation
-strg  =   c("/100_300/","/150_500/", "/200_600/")
+strg  =   c("100_300/","150_500/", "200_600/")
 titles  =  c("50 subjects per group and 300 taxa",
              "75 subjects per group and 500 taxa",
              "100 subjects per group and 600 taxa")
 ########################################################
-n = 11; p1  =   p2   =  p3 =  p4  = p5  = p6 = list()
+n = 14; p1  =   p2   =  p3 =  p4  = p5  = p6 = p7 = list()
+
 for(i in 1:length(strg)){
-  path  =   paste0(getwd(),strg[[i]])
+  ########################################################
+  path  =   paste0(strg[[i]])
   dd    =   load_data(path) 
-  
+
   conf =  dd$confint
   ddd  = do.call(rbind,conf)
   ddd  =  ddd %>%
           filter(ddd$model != "deseq_NS" )
-
- p6[[i]] = ggplot(ddd, aes(x = param_name, y = average_estimate, color = model, group = model)) +
-    geom_point(size = 1, alpha = 0.5) +  # Adjust point size and transparency
+  ########################################################
+ p1[[i]] = ggplot(ddd, aes(x = param_name, y = average_estimate, color = model, group = model)) +
+    geom_point(size = 1, alpha = 0.5) +  
     geom_line() +   
     geom_point(aes(x = param_name, y = true_param, color = "true group effect"), 
                size = 1.5, shape = 17) +   
-    scale_color_manual(
-      values = c("blue", "red", "green", "black", "purple", "orange", "cyan"),  
-      name = "Model"
-    ) +  
-    labs(title = titles[[i]],#"Comparison of averages of effect size estimates
-                      #for each model with true effect side",
+    # scale_color_manual(
+    #   values = c("blue", "red", "green", "black", "purple", "orange", "cyan"),  
+    #   name = "Model"
+    # ) +  
+    labs(title = titles[[i]],
          x = "Taxa",   
          y = "Average group effect size estimate across simulations",
          color = "Model") +   
@@ -48,24 +50,38 @@ for(i in 1:length(strg)){
   #####################################################
   mse   =   err_extract(dd, "avg_mse")
   bias  =   err_extract(dd, "avg_bias")
+  var   =   err_extract(dd, "avg_var")
   
-  p1[[i]] = ggplot(mse, aes(model, average_value)) +
+  
+  p2[[i]] = ggplot(mse, aes(model, average_value)) +
     geom_point() +
-    geom_hline(yintercept = mse["rrzi",1], linetype = "dashed", color = "red") +
+    geom_hline(yintercept = mse["RRzi",1], linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title= titles[[i]],
-         y = "Average RMSE across taxa"
-           #"Comparison of average RMSE across taxa",x = " ",y = "Average RMSE"
+         y = "Average RMSE across taxa",
+           #"Comparison of average RMSE across taxa",
+         x = " "
          )
   
-  p2[[i]] = ggplot(bias, aes(model, average_value)) +
+  p3[[i]] = ggplot(bias, aes(model, average_value)) +
     geom_point() +
-    geom_hline(yintercept = bias["rrzi",1], linetype = "dashed", color = "red") +
+    geom_hline(yintercept = bias["RRzi",1], linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title = titles[[i]],
          y = "Average bias across taxa"
            #"Comparison of average bias across taxa",x = " ",y = "Average Bias"
            )
+  
+  
+  p4[[i]] = ggplot(var, aes(model, log(average_value))) +
+    geom_point() +
+    geom_hline(yintercept = log(var["RRzi",1]), linetype = "dashed", color = "red") +
+    custom_theme(n) +
+    labs(title = titles[[i]],
+         x = " ",
+         y = "log(Average variance of error across taxa)"
+         #"Comparison of average bias across taxa",x = " ",y = "Average Bias"
+    )
   
   #####################################################
   ####Coverage Calculation 
@@ -78,7 +94,7 @@ for(i in 1:length(strg)){
                            data = pp, FUN = mean)
   
   # Create the plot
-  p3[[i]]= ggplot(mean_values, aes(x = model, ymin = lwr, ymax = upr, y = (lwr + upr) / 2)) +
+  p5[[i]]= ggplot(mean_values, aes(x = model, ymin = lwr, ymax = upr, y = (lwr + upr) / 2)) +
     geom_pointrange(size = 0.8) +
     geom_hline(aes(yintercept = true_param), linetype = "dashed", color = "red", size = 1) +
     labs(
@@ -92,7 +108,7 @@ for(i in 1:length(strg)){
     coord_flip()
   
   
-  p4[[i]]  = ggplot(mean_values, aes(x = model, y = CI_width)) +
+  p6[[i]]  = ggplot(mean_values, aes(x = model, y = CI_width)) +
     geom_point() +
     labs(
       title = "Confidence Width for Models",
@@ -101,53 +117,48 @@ for(i in 1:length(strg)){
     ) +
     custom_theme(n)
   
-  num_taxa  = nrow(dd$dd$deseq)
+  num_taxa  = nrow(dd$dd$DE)
   #####################################################
   # Sum coverage by model type
   coverage_dd <- aggregate(coverage ~ model, data = pp, sum)
   coverage_dd$coverage =  coverage_dd$coverage/num_taxa  
   
   
-  p5[[i]]  = ggplot(coverage_dd, aes(x = model, y = coverage)) +
+  p7[[i]]  = ggplot(coverage_dd, aes(x = model, y = coverage)) +
     geom_point() +
     custom_theme(n)
 }
 
 
-combined_plot <- (p6[[1]]|p6[[2]]|p6[[3]]) + plot_layout(guides = "collect") &
-  theme(legend.position='bottom')
+##################################################################
+combined_plot <- (p1[[1]]|p1[[2]]|p1[[3]]) + plot_layout(guides = "collect") 
+                  theme(legend.position='bottom')
 
-#+  plot_annotation(tag_levels = "")
+height =  5; width = 17
+##################################################################
+RMSE = (p2[[1]]|p2[[2]]|p2[[3]]) +  plot_layout(guides = "collect") 
 
+ggsave("fig/mse.png", plot = RMSE, width = width, 
+       height = height, dpi = 300)
+##################################################################
+BIAS = (p3[[1]]|p3[[2]]|p3[[3]]) +  plot_layout(guides = "collect") 
 
-(p6[[1]]|p6[[2]]|p6[[3]]) +  plot_layout(guides = "collect") +  
-  plot_annotation(
-  x = "X Axis Label"
-)
+ggsave("fig/bias.png", plot = BIAS, width = width,
+       height = height, dpi = 300)
+##################################################################
+VAR = (p4[[1]]|p4[[2]]|p4[[3]]) +  plot_layout(guides = "collect") 
 
-(p6[[1]] + p6[[2]] +p6[[3]]) +
-  plot_annotation(
-  caption = 'made with patchwork',
-  theme = theme(plot.title = element_text(size = 16))
-)
-p1[[1]]|p1[[2]]|p1[[3]] + 
-p2[[1]]|p2[[2]]|p2[[3]]
+ggsave("fig/var.png", plot = VAR, width = width,
+       height = height, dpi = 300)
+##################################################################
+(p4[[1]]|p4[[2]]|p4[[3]]) +  plot_layout(guides = "collect") 
 
-p1[[1]]|p2[[1]]
+(p5[[1]]|p5[[2]]|p5[[3]]) +  plot_layout(guides = "collect") 
 
-#205
- 
-
-
-
-mm = left_join(mean_values, coverage_sum, by = "model")
-
-
-  # Add confidence interval lines
-  
-
-#####################################################
+(p6[[1]]|p6[[2]]|p6[[3]]) +  plot_layout(guides = "collect") 
+##################################################################
 ####Confidence Interval Width
+#mm   =                      
 ggplot(mm, aes(x = model, y = true_param)) +
   # Add confidence interval lines
   geom_linerange(aes(ymin = lwr, ymax = upr), color = "blue", size = 1.5) +

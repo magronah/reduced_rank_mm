@@ -1,7 +1,8 @@
 library(glmmTMB)
 library(NBZIMM)
+library(here)
 ##############################################################
-path   =   paste0(getwd(),"/real_data/autism_data/")
+path   =   "real_data/autism_data/"
 source(paste0(path,"prep_data.R"))
 ##############################################################
 ddd   =   t(countdata)

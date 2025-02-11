@@ -4,8 +4,9 @@ library(fido)
 library(dplyr)
 library(tidyverse)
 library(DESeq2)
+library(here)
 ##############################################################
-path1   =   paste0(getwd(),"/real_data/")
+path1   =   paste0("real_data/")
 source(paste0(path1,"/fun.R"))
 ##############################################################
 set.seed(899)
@@ -73,4 +74,16 @@ df    =   left_join(dd_long, normalizer, by ="subject")
 gprior  <- data.frame(prior = "gamma(2, 2.5)",
                       class = "theta_sd",
                       coef = "")
+
+mean_count   =  rowMeans(countdata)
+################################################################
+file_dir  = "CrohnD_data/results/"
+
+saveRDS(pp$result, file =  paste0(path1, file_dir, "deseq_mod_est.rds"))
+saveRDS(meta_dd, file =  paste0(path1, file_dir, "metadata.rds"))
+saveRDS(mean_count, file =  paste0(path1, file_dir, "mean_count.rds"))
+saveRDS(countdata, file =  paste0(path1, file_dir, "countdata.rds"))
+saveRDS(ntax, file =  paste0(path1, file_dir, "ntaxa.rds"))
+
+
 

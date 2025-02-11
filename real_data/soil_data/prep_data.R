@@ -18,17 +18,17 @@ meta_dd    =   met_dd %>%
 #' group variable is the soiltype
 #' subjects are the soil samples
 ##############################################################
-ntaxa = ncol(dd)
+ntax = ncol(dd)
 dd_long    =   df_long(dd, otu_names = "OTU", 
                        subject_name = "sample", 
-                       ntaxa = ntaxa)
+                       ntaxa = ntax)
 
 dd_long    =   left_join(dd_long, meta_dd, by ="sample")  
 ###########################################################
 pp         =    deseqfun(dd, meta_dd, alpha_level=0.1,
                          design   = ~group + site,
                          ref_name = "B",
-                         ntaxa = ntaxa)
+                         ntaxa = ntax)
 
 countdata     =    pp$data$countdata
 meta_dd       =    pp$data$meta_data
@@ -43,4 +43,15 @@ df    =   left_join(dd_long, normalizer, by ="sample")
 gprior  <- data.frame(prior = "gamma(2, 2.5)",
                       class = "theta_sd",
                       coef = "")
+ 
+mean_count   =  rowMeans(countdata)
+################################################################
+file_dir  = "soil_data/results/"
+
+saveRDS(pp$result, file =  paste0(path1, file_dir, "deseq_mod_est.rds"))
+saveRDS(meta_dd, file =  paste0(path1, file_dir, "metadata.rds"))
+saveRDS(mean_count, file =  paste0(path1, file_dir, "mean_count.rds"))
+saveRDS(countdata, file =  paste0(path1, file_dir, "countdata.rds"))
+saveRDS(ntax, file =  paste0(path1, file_dir, "ntaxa.rds"))
+
  

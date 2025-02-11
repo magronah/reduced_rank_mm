@@ -50,7 +50,6 @@ mod  <- tryCatch({
                      control = par_ctrl)
 })
 
-
 file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","rr/")
 
 if (!dir.exists(file_path)) {

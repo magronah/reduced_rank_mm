@@ -1,7 +1,8 @@
 library(RhpcBLASctl)
 library(glmmTMB)
+library(here)
 ###########################################################
-path   =   paste0(getwd(),"/real_data/atlass_data/")
+path   =   paste0("real_data/atlass_data/")
 source(paste0(path,"prep_data.R"))
 ################################################################
 par_ctrl <- glmmTMBControl(
