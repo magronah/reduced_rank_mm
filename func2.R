@@ -10,7 +10,8 @@
 wald_confint = function(mod, conf_level = .95, 
                         in_sd = 1, ntaxa,
                         mean_count, mod_name,
-                        path){
+                        sdreport_path,
+                        fullsdr_path){
   
   grp_ind   =   seq(2, 2*(ntaxa), 2)
   #pred    =   predict(mod, type = "latent", se.fit = TRUE) 
@@ -18,7 +19,7 @@ wald_confint = function(mod, conf_level = .95,
   #sd_err  =   pred$se.fit[grp_ind]
   ########################################################
   ss <- TMB::sdreport(mod$obj, getJointPrecision = TRUE)
-  saveRDS(ss, file = paste0(path,"sdreport_",mod_name,".rds"))
+  saveRDS(ss, file = paste0(sdreport_path,mod_name,".rds"))
   #ss  <-  readRDS(paste0(path,"sdreport_",mod_name,".rds"))
   #########################################################
   ss$jointPrecision <-  as(ss$jointPrecision, "sparseMatrix")
@@ -37,7 +38,7 @@ wald_confint = function(mod, conf_level = .95,
   # https://github.com/glmmTMB/glmmTMB/blob/master/misc/allFit.R
   #se_vec <- sqrt(diag(solve(ss$jointPrecision)))
   #start_method in glmmTMBControl jitter.sd
-  saveRDS(se_vec, file = paste0(path,"full_sdr_",mod_name,".rds"))
+  saveRDS(se_vec, file = paste0(fullsdr_path,mod_name,".rds"))
   #########################################################
   full_est  =   mod$fit$parfull
   est       =   full_est[names(full_est) == "b"][grp_ind]
