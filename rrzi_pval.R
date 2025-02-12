@@ -22,7 +22,7 @@ nam	  =   paste0("mod",i)
 ###########################################################
 path_d     =  paste0("~/scratch/data/coverage/",nsubj,"_",ntaxa)
 
-save_path  =  paste0(path_d,"/sdreport/",mm)
+save_path  =  paste0(path_d,"/sdreport/",mm,"/")
 
 
 if (!dir.exists(save_path)) {
@@ -33,14 +33,27 @@ if (!dir.exists(save_path)) {
 }
 
 
+
+sdr_path  =  paste0(path_d,"/fullsdr/",mm,"/")
+
+
+if (!dir.exists(sdr_path)) {
+  dir.create(sdr_path, recursive = TRUE)
+  cat("Folder created at:", sdr_path, "\n")
+} else {
+  cat("Folder already exists at:", sdr_path, "\n")
+}
+
+mod_nam  = paste0("mod",i)
 confint   <-  wald_confint(mod   =  model,
                            ntaxa =  ntaxa,
-                      mean_count =  mu_count,
-                        mod_name =  mm,
-                            path =  save_path)
+                           mean_count =  mu_count,
+                           mod_name =  mod_nam,
+                           sdreport_path =  save_path, 
+                           fullsdr_path  =  sdr_path)
 
 
-confint_path  =  paste0(path_d,"/confint/")
+confint_path  =  paste0(path_d,"/confint/",mm,"/")
 
 if (!dir.exists(confint_path)) {
   dir.create(confint_path, recursive = TRUE)
@@ -49,4 +62,6 @@ if (!dir.exists(confint_path)) {
   cat("Folder already exists at:", confint_path, "\n")
 }
 
-saveRDS(confint, file = paste0(confint_path,mm,"/mod",i,".rds"))
+saveRDS(confint, file = paste0(confint_path,"/mod",i,".rds"))
+
+
