@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --nodes=1               # number of nodes to use
-#SBATCH --time=00-04:00:00         # time (DD-HH:MM:SS)
+#SBATCH --time=00-01:30:00         # time (DD-HH:MM:SS)
 #SBATCH --job-name="Single job"     # job name
 
 #SBATCH --cpus-per-task=1         # Number of CPU cores to use
@@ -15,5 +15,5 @@
 
 module load r/4.4.0
 
-R CMD BATCH simulate_data.R  simulate_data.Rout
+R CMD BATCH cov_rrzi.R  cov_uszi.Rout
 
