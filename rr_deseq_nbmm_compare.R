@@ -131,17 +131,80 @@ for(i in 1:length(strg)){
     custom_theme(n)
 }
 
-
 ##################################################################
+filenames  <-  c("us.rds", "uszi.rds", "rr.rds")
+path       =   paste0(strg[[3]])
+dd         =   load_models(paste0(path, "confint/"),filenames)
+names(dd)  =   c("us", "uszi", "rr")     
+##################################################################
+true_param    =   readRDS(paste0(path, "true_param.rds"))
+##################################################################
+alpha  <-  0.05
+ddd <- lapply(dd, function(x){
+  ddf <- lapply(x, function(y){
+    y$p.adj    =   p.adjust(y$pvalue, "BH")
+       df      =   left_join(true_param,y, by = "param_name")
+    df$cov     =   ifelse(df$lwr  < df$true_param & df$true_param < df$upr,1, 0)
+    df$pval_reject  =   ifelse(df$p.adj  < alpha,1, 0)
+    df
+  })
+  names(ddf)  = names(x)
+  ddf
+})
+##################################################################
+library(dplyr)
+library(purrr)
+cov_dd  <-   lapply(ddd, function(x){
+  p = x %>%  map_dfc(~ pull(.x, cov))
+  mean(rowMeans(p))
+})
+
+covv = data.frame(coverage =do.call("rbind", cov_dd)) %>%
+       rownames_to_column("model")
+##################################################################
+size = 3; nn= 14; width =  7; height =  5; dpi = 300
+plt0 = ggplot(covv, aes(model, coverage)) + 
+         geom_point(size = size)  +  
+         custom_theme(nn) +
+        labs(x = "")
+
+ggsave("fig/coverage.png", plot = plt0, 
+       width = width, 
+       height = height, 
+       dpi = dpi)
+##################################################################
+pval_dd  <-   lapply(ddd, function(x){
+  p = x %>%  map_dfc(~ pull(.x, pval_reject))
+  mean(colMeans(p))
+})
+
+pval_dd_ = data.frame(pow = do.call("rbind", pval_dd))  %>%
+  rownames_to_column("model")
+ 
+plt1 = ggplot(pval_dd_, aes(model, pow)) + 
+       geom_point(size = size)+
+       custom_theme(nn)  +
+       labs(x = "", y ="power")
+
+ggsave("fig/power.png", plot = plt1, 
+       width = width, 
+       height = height, 
+       dpi = dpi)
+
+plt0 + plt1
+####################################################################
 combined_plot <- (p1[[1]]|p1[[2]]|p1[[3]]) + plot_layout(guides = "collect") 
                   theme(legend.position='bottom')
+                  
+                  
+                  
 
 height =  5; width = 17
 ##################################################################
 RMSE = (p2[[1]]|p2[[2]]|p2[[3]]) +  plot_layout(guides = "collect") 
 
 ggsave("fig/mse.png", plot = RMSE, width = width, 
-       # height = height, dpi = 300)
+        height = height, dpi = 300)
 ##################################################################
 BIAS = (p3[[1]]|p3[[2]]|p3[[3]]) +  plot_layout(guides = "collect") 
 

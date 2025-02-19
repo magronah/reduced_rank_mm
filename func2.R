@@ -387,6 +387,11 @@ custom_theme <- function(n) {
     )
 }
 #################################################################
+load_models <- function(path, filenames) {
+  file_paths <- paste0(path, filenames)
+  mod_list  <- lapply(file_paths, readRDS)
+}
+#################################################################
 load_data <- function(path, alpha = 0.05) {
  
   true_param =  readRDS(paste0(path,"true_param.rds"))

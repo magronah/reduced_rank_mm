@@ -7,12 +7,13 @@ library(dplyr)
 library(DESeq2)
 library(glmmTMB)
 library(foreach)
+library(here)
 source("func2.R")
 source("initial_param0.R")
 ###################################################################
 ntaxa; nsubj; beta; betadisp; 
 
-path  =  paste0(paste0(getwd()),"/",nsubj,"_",ntaxa,"/")
+path  =  paste0(nsubj,"_",ntaxa,"/")
 
 if (!dir.exists(path)) {
   dir.create(path, recursive = TRUE) 
