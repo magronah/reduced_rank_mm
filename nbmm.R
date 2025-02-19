@@ -2,11 +2,12 @@ library(NBZIMM)
 library(DESeq2)
 library(Matrix)
 library(huge)
+library(here)
 
 source("func2.R")
 source("initial_param0.R")
 
-path = paste0(getwd(),"/",nsubj,"_",ntaxa,"/")
+path = paste0(nsubj,"_",ntaxa,"/")
 path
 ####################################################################
 data	  =   readRDS(paste0(path,"otu_meta_list_withzi_taxa.rds"))
@@ -28,7 +29,7 @@ mod        =   mms(y = countdata, fixed = ~group + offset(normalizer),
                    random =  ~ 1|dummy,
                    data = met_dd, method = "nb")
 
-file_path  =  paste0("~/scratch/dataset/RR","/",nsubj,"_",ntaxa,"/","nbmm/")
+file_path  =  paste0("~/scratch/data/",nsubj,"_",ntaxa,"/","nbmm/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)
