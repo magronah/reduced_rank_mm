@@ -21,6 +21,7 @@ rownames(countdata) <-  paste0("taxon",1:nrow(countdata))
 #' The full dataset has 130 taxa and 1151 subjects
 #' We analyse only the data at the initial time point. 
 #' The data at the initial time point has
+#' uneven time intervals
 
 meta_data  <-  sample_data(atlas1006)
 meta_dd    <-  meta_data %>%

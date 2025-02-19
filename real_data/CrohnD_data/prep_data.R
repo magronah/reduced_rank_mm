@@ -17,6 +17,11 @@ CCFA_phylo <- phyloseq(otu_table(as.matrix(RISK_CCFA_otu), taxa_are_rows = TRUE)
                        sample_data(RISK_CCFA_sam), 
                        tax_table(as.matrix(RISK_CCFA_tax)))
 
+View(otu_table(CCFA_phylo,taxa_are_rows = TRUE)) # 9511 taxa 1359 samples
+View(sample_data(RISK_CCFA_sam)) # 9511 taxa 1359 samples
+View(tax_table(CCFA_phylo))
+
+
 # drop low abundant taxa and samples
 dat <- CCFA_phylo %>% 
   subset_samples(disease_stat!="missing", 
@@ -29,6 +34,7 @@ dat <- CCFA_phylo %>%
   tax_glom("Family") %>% 
   prune_samples(sample_sums(.) >= 5000,.) %>%
   filter_taxa(function(x) sum(x > 3) > 0.10*length(x), TRUE)
+
 ########################################################################
 sample_dat <- as.data.frame(as(sample_data(dat),"matrix")) %>% 
   mutate(age = as.numeric(as.character(age)),

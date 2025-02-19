@@ -14,7 +14,7 @@ titles  =  c("50 subjects per group and 300 taxa",
              "100 subjects per group and 600 taxa")
 ########################################################
 n = 14; p1  =   p2   =  p3 =  p4  = p5  = p6 = p7 = list()
-
+BIAS = VARIAN  =  list()
 for(i in 1:length(strg)){
   ########################################################
   path  =   paste0(strg[[i]])
@@ -63,6 +63,7 @@ for(i in 1:length(strg)){
          x = " "
          )
   
+  BIAS[[i]] = bias
   p3[[i]] = ggplot(bias, aes(model, average_value)) +
     geom_point() +
     geom_hline(yintercept = bias["RRzi",1], linetype = "dashed", color = "red") +
@@ -73,6 +74,7 @@ for(i in 1:length(strg)){
            )
   
   
+  VARIAN[[i]] = var
   p4[[i]] = ggplot(var, aes(model, log(average_value))) +
     geom_point() +
     geom_hline(yintercept = log(var["RRzi",1]), linetype = "dashed", color = "red") +
@@ -139,7 +141,7 @@ height =  5; width = 17
 RMSE = (p2[[1]]|p2[[2]]|p2[[3]]) +  plot_layout(guides = "collect") 
 
 ggsave("fig/mse.png", plot = RMSE, width = width, 
-       height = height, dpi = 300)
+       # height = height, dpi = 300)
 ##################################################################
 BIAS = (p3[[1]]|p3[[2]]|p3[[3]]) +  plot_layout(guides = "collect") 
 

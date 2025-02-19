@@ -84,7 +84,7 @@ load_models <- function(path, filenames) {
 }
 
 filter_complete_separation = function(dd){
-  df  = dd  %>% filter(abs(est_param) > 10)
+  df  = dd  %>% filter(abs(est_param) < 10)
   taxa_exclude =  df$param_name
   dd   %>%  filter(!param_name %in% taxa_exclude)
 }
