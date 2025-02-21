@@ -580,6 +580,39 @@ get_theta_corrRR <- function(d, n, logsdvec) {
   return(theta)
 }
 
+
+
+normalizer_fun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
+                     minReplicatesForReplace = Inf, 
+                     cooksCutoff = FALSE,
+                     independentFiltering = FALSE,
+                     do_shrinkage =  "yes", 
+                     design   = ~group,
+                     shrinkage_method="normal",
+                     ntaxa){
+  
+  #check otu table is in otu by samples format
+  if(nrow(countdata) != ntaxa){
+    countdata = t(countdata)
+  }
+  
+  #remove samples with zeros for all taxa (if any such sample exist)
+  keep <- (colSums(countdata) > 0)
+  countdata = countdata[,keep]
+  met_data= met_data[keep, ]
+  
+  # call deseq
+  dds <- DESeqDataSetFromMatrix(countdata,met_data, design = design)
+  dds$group <- relevel(dds$group, ref = ref_name)
+  
+  dds <- DESeq(dds,sfType ="poscounts",
+               minReplicatesForReplace = minReplicatesForReplace) 
+  sizeFactors(dds) 
+}
+
+
+
+
 deseqfun <- function(countdata,met_data,alpha_level=0.1,ref_name="NT",
                      minReplicatesForReplace = Inf, 
                      cooksCutoff = FALSE,

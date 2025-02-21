@@ -8,8 +8,8 @@ source("func2.R")
 fig_path=   "fig/"
 #####################################################
 ####Bias and RMSE calculation
-strg  =   c("100_300/","150_500/", "200_600/")
-titles  =  c("50 subjects per group and 300 taxa",
+strg    =   c("100_300/","150_500/", "200_600/")
+titles  =   c("50 subjects per group and 300 taxa",
              "75 subjects per group and 500 taxa",
              "100 subjects per group and 600 taxa")
 ########################################################
@@ -197,8 +197,75 @@ combined_plot <- (p1[[1]]|p1[[2]]|p1[[3]]) + plot_layout(guides = "collect")
                   theme(legend.position='bottom')
                   
                   
-                  
+########################################################
+library(dplyr)
+library(tibble)
+library(ggplot2)
+library(tidyverse)
+library(patchwork)
+library(here)
+source("func2.R")
+fig_path=   "fig/"
+#####################################################
+####Bias and RMSE calculation
+strg    =   c("100_300/","150_500/", "200_600/")
+titles  =   c("50 subjects per group and 300 taxa",
+             "75 subjects per group and 500 taxa",
+             "100 subjects per group and 600 taxa")
+########################################################
+# Define filenames to load
+filenames <- c(
+  "rr_aicc.rds",
+  "rrzi_aicc.rds",
+  "us_aicc.rds",
+  "uszi_aicc.rds",
+  "nbmm_aicc.rds",
+  "zinbmm_aicc.rds",
+  "deseq_aicc.rds"  
+)
 
+
+
+# Load models for autism data
+aicc <- load_models(strg[2], filenames)
+# Assigning names 
+aicc_names <- c("RR","RRzi","US","USzi","NB","ZNB","DE")
+names(aicc)    =  aicc_names
+# names(crohn_models)    =   names(soil_models)    =    mod_names
+# mod_list     =   lst(autism_models,atlass_models,crohn_models,soil_models)
+
+sim_list <- lapply(paste0("sim", 1:10), function(sim) {
+  sapply(aicc, function(x) which(x == sim))
+})
+
+names(sim_list) <- paste0("sim", 1:10)
+
+
+v   =   as.data.frame(do.call(rbind,aicc))
+
+for(i in 1:10){
+  vv  =   v %>% dplyr::select(paste0("sim",i)) %>%
+         rownames_to_column("model")
+  vv[[paste0("sim", i)]] <- as.numeric(vv[[paste0("sim", i)]])  
+  vv$aicc_diff <- vv[[paste0("sim", i)]] - min(vv[[paste0("sim", i)]], na.rm = TRUE)
+  vvv  =vv %>% arrange(aicc_diff)
+
+  print(vvv)
+}
+
+
+View(v)
+names(sim_list) <- paste0("sim", 1:10)
+
+sim_dd  <-   t(data.frame(lapply(aicc, function(x){
+              x[["sim1"]]
+})))
+
+
+class(aicc)
+lapply(aicc, names)
+  
+                  
 height =  5; width = 17
 ##################################################################
 RMSE = (p2[[1]]|p2[[2]]|p2[[3]]) +  plot_layout(guides = "collect") 

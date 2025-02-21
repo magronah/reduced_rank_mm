@@ -1,7 +1,8 @@
 library(RhpcBLASctl)
 library(glmmTMB)
+library(here)
 ###########################################################
-path   =   paste0(getwd(),"/real_data/CrohnD_data/")
+path   =   paste0("real_data/CrohnD_data/")
 source(paste0(path,"prep_data.R"))
 ##############################################################
 ddd     =    t(countdata)

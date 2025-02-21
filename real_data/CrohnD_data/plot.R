@@ -2,11 +2,12 @@ library(glmmTMB)
 library(ggplot2)
 library(dplyr)
 library(AICcmodavg) 
+library(here) 
 ##############################################################
-path1   =   paste0(getwd(),"/real_data/")
+path1   =   paste0("real_data/")
 source(paste0(path1,"/fun.R"))
 
-path   =   paste0(getwd(),"/real_data/CrohnD_data/results/")
+path   =   paste0("real_data/CrohnD_data/results/")
 ##############################################################
      rr       =   readRDS(paste0(path,"rr_mod.rds"))
      rrzi     =   readRDS(paste0(path,"rrzi_mod.rds"))

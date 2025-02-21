@@ -4,16 +4,19 @@ library(NBZIMM)
 library(DESeq2)
 library(Matrix)
 library(huge)
+library(here)
 
 source("func2.R")
 source("initial_param0.R")
-path = paste0(getwd(),"/",nsubj,"_",ntaxa,"/")
+path = paste0(nsubj,"_",ntaxa,"/")
 path
 ####################################################################
 data	=   readRDS(paste0(path,"otu_meta_list_withzi_taxa.rds"))
 ################################################################
 cc	=   commandArgs(trailingOnly  = TRUE)
-i	=   as.integer(cc[1])
+i	  =   as.integer(cc[1])
+
+for(i in 1:5){
 dd	=   data[[i]]
 ################################################################
 countdata  =   dd$countdata
@@ -39,8 +42,6 @@ if (!dir.exists(file_path)) {
   cat("Folder already exists at:", file_path, "\n")
 }
 
-
-
 saveRDS(mod, file=paste0(file_path,"mod",i,".rds"))
-
+}
 

@@ -23,7 +23,8 @@ par_ctrl <- glmmTMBControl(
   parallel = list(n = 10, autopar = TRUE)
 )
 
-
+for(i in 1:5){
+  
  dd     =   data[[i]]
   ################################################################
   ##now add normalization constant 
@@ -42,13 +43,13 @@ mod  <- tryCatch({
        glmmTMB(form2, data = df,
                      family  = nbinom2,
                      prior   = gprior,
-                     REML    = TRUE,
+                     REML    = FALSE,
                      control = par_ctrl)
 }, error = function(e) {
      message("Error in first attempt, trying again without prior...")
        glmmTMB(form2, data = df,
                      family  = nbinom2,
-                     REML    = TRUE,
+                     REML    = FALSE,
                      control = par_ctrl)
 })
 
@@ -64,3 +65,4 @@ if (!dir.exists(file_path)) {
 
 saveRDS(mod, file=paste0(file_path,"mod",i,".rds")) 
 
+}
