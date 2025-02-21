@@ -1,3 +1,44 @@
+zinbmm_confint = function(mod, mean_count,
+                          group_label = "grouptreat",
+                          conf_level = .95){
+  
+  sd_err =  as.numeric(unlist(lapply(mod$fit,function(x) 
+  {summary(x)$tTable[group_label, "Std.Error"]})))
+  
+  est    =   as.numeric(unlist(lapply(mod$fit,function(x) 
+  {summary(x)$tTable[group_label, "Value"]})))
+  
+  pvalue =  as.numeric(unlist(lapply(mod$fit,function(x) 
+  {summary(x)$tTable[group_label, "p-value"]})))
+  
+  dd         =   data.frame(est_param = est)
+  z_score    =   qnorm(conf_level + (1 - conf_level)/2)
+  
+  dd$lwr     =   est  -  z_score*sd_err
+  dd$upr     =   est  +  z_score*sd_err
+  dd$width   =   dd$upr  - dd$lwr
+  
+  dd$pvalue      =   pvalue  
+  dd$param_name  =   names(mod$fit)
+  dd
+}
+
+
+
+deseq_wald_confint = function(deseq_est,conf_level = .95){
+  foldchange =   log(2)*deseq_est$log2FoldChange
+  dd         =   data.frame(est_param = foldchange)
+  z_score    =   qnorm(conf_level + (1 - conf_level)/2)
+  sd_err     =   log(2)*deseq_est$lfcSE
+  dd$lwr     =   foldchange  -  z_score*sd_err
+  dd$upr     =   foldchange  +  z_score*sd_err
+  dd$width   =   dd$upr  - dd$lwr
+  dd$param_name  =  deseq_est$param_name
+  dd$padj        =   deseq_est$padj  
+  dd
+}
+
+
 #'
 #' @param mod 
 #' @param ntaxa 
