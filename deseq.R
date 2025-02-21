@@ -12,10 +12,10 @@ path
 ####################################################################
 data      =   readRDS(paste0(path,"otu_meta_list_withzi_taxa.rds"))
 ################################################################
-#cc      =   commandArgs(trailingOnly  = TRUE)
-#i       =   as.integer(cc[1]) 
+cc      =   commandArgs(trailingOnly  = TRUE)
+i       =   as.integer(cc[1]) 
 
-for(i in 51:150){
+#for(i in 51:150){
 dd      =   data[[i]]
 ################################################################
 countdata  =   dd$countdata
@@ -35,4 +35,4 @@ if (!dir.exists(file_path)) {
 
 
 saveRDS(res, file=paste0(file_path,"mod",i,".rds"))
-}
+#}
