@@ -268,6 +268,8 @@ get_theta_rr <- function(d, n, logsdvec, seed = NULL) {
     ##  e.g. set the first element to 0 (without loss of generality?)
     set.seed(seed)
     r <- rnorm(n-i+1)
+    # the other terms are coming from the rnorm, and they do not 
+    # affect the standard deviations of the reduced rank term
     rexp <- exp(r)
     mat[(i:n), i] <- sqrt(rexp/sum(rexp))
   }

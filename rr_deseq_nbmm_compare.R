@@ -310,6 +310,11 @@ ggplot(mm, aes(x = model, y = true_param)) +
   ) +
   theme_minimal()
 
+
+
+
+
+
 #####################################################
 path1   =   paste0(getwd(),"/50_200_previous_500sim/")
 path1   =   paste0(getwd(),"/50_200/")

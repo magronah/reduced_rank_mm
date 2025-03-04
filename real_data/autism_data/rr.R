@@ -14,6 +14,8 @@ blas_set_num_threads(1)
 ################################################################
 form =  count ~ 1 + us(1 + group|taxon) +
                rr(0 + taxon | subject,2) +  offset(normalizer)
+
+#
 ################################################################
 tt = system.time(
   fit  <-  glmmTMB(form, data = df,

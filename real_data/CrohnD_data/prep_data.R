@@ -19,7 +19,7 @@ CCFA_phylo <- phyloseq(otu_table(as.matrix(RISK_CCFA_otu), taxa_are_rows = TRUE)
 
 View(otu_table(CCFA_phylo,taxa_are_rows = TRUE)) # 9511 taxa 1359 samples
 View(sample_data(RISK_CCFA_sam)) # 9511 taxa 1359 samples
-View(tax_table(CCFA_phylo))
+# View(tax_table(CCFA_phylo))
 
 
 # drop low abundant taxa and samples
@@ -34,7 +34,6 @@ dat <- CCFA_phylo %>%
   tax_glom("Family") %>% 
   prune_samples(sample_sums(.) >= 5000,.) %>%
   filter_taxa(function(x) sum(x > 3) > 0.10*length(x), TRUE)
-
 ########################################################################
 sample_dat <- as.data.frame(as(sample_data(dat),"matrix")) %>% 
   mutate(age = as.numeric(as.character(age)),
@@ -48,7 +47,6 @@ data    =   t(otu_table(dat))  %>%
 dd  <- data[, apply(data, 2, function(col) any(col == 0))]
 dd  <-  dd[,-3]  #zinbmm cannot fit this as it says there is an NA
                  #I have not find NA though 
-
 meta_dd  = sample_dat %>%  
           dplyr::select(diagnosis,age) %>%
           rownames_to_column()   %>%
