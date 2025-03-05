@@ -1,9 +1,26 @@
 
 ## need to modify src/Makevars in glmmTMB directory to contain this
 ## (no fopenmp!)
-c("PKG_CPPFLAGS = -DTMBAD_FRAMEWORK -DTMBAD_INDEX_TYPE=uint64_t",
-  "## PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)",
-  "## PKG_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS)")
+install_glmmTMB <- function(pkgdir, libdir, clean_src = TRUE) {
+    ## save existing src/Makevars, overwrite with what we want
+    flags <- c("PKG_CPPFLAGS = -DTMBAD_FRAMEWORK -DTMBAD_INDEX_TYPE=uint64_t -DTMB_MAX_ORDER=4",
+      "## PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)",
+      "## PKG_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS)")
+    td <- tempdir()
+    makevars <- file.path(pkgdir, "src", "Makevars")
+    file.rename(makevars, file.path(td, "Makevars"))
+    on.exit(file.rename(file.path(td, "Makevars"), makevars))
+    unlink(makevars)
+    writeLines(flags, makevars)
+    if (clean_src) {
+        unlink(list.files(file.path(pkgdir, "src"),
+                          pattern="\\.(o|so)$",
+                          full.names = TRUE))
+    }
+    if (!dir.exists(libdir)) dir.create(libdir)
+    system(sprintf("R CMD INSTALL -l %s %s",
+                   libdir, pkgdir))
+}
 
 ## need to install this way (with location adjusted to your liking)
 ## R CMD INSTALL -l ~/students/agronah/reduced_rank_mm/glmmTMB_lev glmmTMB
@@ -137,68 +154,70 @@ leverage <- function(fm, diag=TRUE) {
     term1 + term2
 }
 
+## don't redo this unless necessary (slow)
+install_glmmTMB(pkgdir = "~/R/pkgs/glmmTMB/glmmTMB",
+                libdir = "glmmTMB_lev")
+
 library(glmmTMB, lib.loc = "glmmTMB_lev")
-## both of these packages *must* be loaded
+## both of these packages *must* be loaded for leverage code to work
 library(RTMB)
 library(Matrix)
-library(lme4)
 
+library(lme4)
+library(cAIC4)
+
+## testing leverage/cAIC computations on sleepstudy example 
 data("sleepstudy", package = "lme4")
 fm1 <- glmmTMB(Reaction ~ Days + (Days | Subject), sleepstudy)
 fm0 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy, REML = FALSE)
+
 
 X <- getME(fm1, "X")
 Z <- getME(fm1, "Z")
 ## compute _conditional_ log likelihood of glmmTMB object?
 pp <- fm1$obj$env$last.par.best
-pp0 <- with(fm1$obj$env, last.par.best[-random])
 ppL <- split(pp, names(pp))
-sigma(fm1)
+
+cAIC(fm0)
 
 ## this successfully recovers the conditional log-likelihood as given by cAIC.
--sum(dnorm(sleepstudy$Reaction, drop(X %*% ppL[["beta"]] + Z%*% ppL[["b"]]), sigma(fm1), log = TRUE))
+resp <- model.response(model.frame(fm1))
+condlik1 <- sum(dnorm(resp,
+           drop(X %*% ppL[["beta"]] + Z%*% ppL[["b"]]), sigma(fm1), log = TRUE))
 ## so does this
--sum(dnorm(sleepstudy$Reaction, fitted(fm1), sigma(fm1), log = TRUE))
+condlik2 <- sum(dnorm(resp, fitted(fm1), sigma(fm1), log = TRUE))
 
+## this could *almost* be automated (with a case/switch statement mapping
+## family to a d*() function)
 
-logLik(fm1)
-plot(leverage(fm1), hatvalues(fm0))
+## in general should extract any info we want from the TMB object *before*
+## trying to compute leverage ... leverage computation screws up internal
+## state of the TMB object
+
+## doesn't quite match, but close
+lfm1 <- leverage(fm1)
+plot(lfm1, hatvalues(fm0))
 abline(a=0, b=1, lty = 2)
 
 
-## want to calculate the conditional log-likelihood (turn off Laplace approx)
-
-fm1$obj$fn(pp0)
-fm1$obj$env$random <- numeric(0)
-m1$obj$retape()
-## do something to zero out the log-likelihood of b with respect to Sigma?
-pp2 <- ppL
-pp2[["theta"]] <- c(100, 100, 0)
-fm1$obj$fn(unlist(pp2))
-
-## 6 top-level params
-length(ppL[["b"]])  ## 36
-## close, anyway ...
-## NOTE leverage calc messes up the guts of the TMB object
-sum(leverage(fm1))
+## not identical, but similar ...
+sum(lfm1)
 sum(hatvalues(fm0))
-## try setting up a sim with singular fit so equivalent to lm hatvalues??
 
-library(cAIC4)
+## Vaida and Blanchard add 1 to the number of params for the dispersion
+cdf <- sum(lfm1)+1
 cAIC(fm0)
-
-logLik(fm1)
-logLik(fm0)
-
+c(clik = condlik2, cdf = cdf, caic = 2*(-condlik2 + cdf))
 
 mm <- readRDS("reproducible/rr_mod.rds")
 ## do this *before* trying to do leverage computation!
 ## this is a plausible value for the conditional log-likelihood ...
--sum(dnbinom(model.frame(mm)$count, mu = fitted(mm), size = sigma(mm), log = TRUE))
-logLik(mm)
+condlik3 <- sum(dnbinom(model.response(model.frame(mm)),
+                        mu = fitted(mm), size = sigma(mm), log = TRUE))
+## compare unconditional nll
 mm$obj$fn()
 
 system.time(trace_hat <- sum(leverage(mm)))
-
-## conditional AIC (no Z-I ...)
+cdf3 <- trace_hat+1
+c(clik = condlik3, cdf = cdf3, caic = 2*(-condlik3 + cdf3))
 
