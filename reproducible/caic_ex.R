@@ -270,3 +270,19 @@ for (i in seq(nrow(testframe))) {
     saveRDS(res, "leverage_timings.rds")
 }
 
+library(ggplot2); theme_set(theme_bw())
+res <- readRDS("leverage_timings.rds")
+res <- do.call(rbind, res)
+
+res_long <- res |>
+    tidyr::pivot_longer(c(time_sec, matches("RAM")),
+                 names_to = "measure")
+
+gg0 <- ggplot(res_long, aes(nsubj, value, colour= factor(ntax))) +
+    facet_grid(measure ~ task, scale = "free") +
+    geom_line() + geom_point() +
+    scale_x_log10() + scale_y_log10()
+
+print(gg0)
+
+print(gg0 + aes(x=ntax, colour = factor(nsubj)))
