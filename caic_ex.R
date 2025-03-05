@@ -146,16 +146,25 @@ library(lme4)
 data("sleepstudy", package = "lme4")
 fm1 <- glmmTMB(Reaction ~ Days + (Days | Subject), sleepstudy)
 fm0 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy, REML = FALSE)
-plot(leverage(fm1), hatvalues(fm0))
-abline(a=0, b=1, lty = 2)
 
-
+X <- getME(fm1, "X")
+Z <- getME(fm1, "Z")
 ## compute _conditional_ log likelihood of glmmTMB object?
 pp <- fm1$obj$env$last.par.best
 pp0 <- with(fm1$obj$env, last.par.best[-random])
 ppL <- split(pp, names(pp))
+sigma(fm1)
+
+## this successfully recovers the conditional log-likelihood as given by cAIC.
+-sum(dnorm(sleepstudy$Reaction, drop(X %*% ppL[["beta"]] + Z%*% ppL[["b"]]), sigma(fm1), log = TRUE))
+## so does this
+-sum(dnorm(sleepstudy$Reaction, fitted(fm1), sigma(fm1), log = TRUE))
+
 
 logLik(fm1)
+plot(leverage(fm1), hatvalues(fm0))
+abline(a=0, b=1, lty = 2)
+
 
 ## want to calculate the conditional log-likelihood (turn off Laplace approx)
 
@@ -181,3 +190,12 @@ cAIC(fm0)
 logLik(fm1)
 logLik(fm0)
 
+
+mm <- readRDS("reproducible/rr_mod.rds")
+system.time(trace_hat <- sum(leverage(mm)))
+
+## conditional AIC (no Z-I ...)
+
+## can we get the conditional log-likelihood from the sum of squares of the deviance residuals???
+## this *might* be it ... ??
+-sum(dnbinom(model.frame(mm)$count, mu = fitted(mm), size = sigma(mm), log = TRUE))
