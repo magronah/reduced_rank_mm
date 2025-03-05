@@ -1,3 +1,4 @@
+## run from head directory of reduced_rank_mm repo
 
 ## need to modify src/Makevars in glmmTMB directory to contain this
 ## (no fopenmp!)
@@ -155,8 +156,10 @@ leverage <- function(fm, diag=TRUE) {
 }
 
 ## don't redo this unless necessary (slow)
-install_glmmTMB(pkgdir = "~/R/pkgs/glmmTMB/glmmTMB",
-                libdir = "glmmTMB_lev")
+if (FALSE) {
+    install_glmmTMB(pkgdir = "~/R/pkgs/glmmTMB/glmmTMB",
+                    libdir = "glmmTMB_lev")
+}
 
 library(glmmTMB, lib.loc = "glmmTMB_lev")
 ## both of these packages *must* be loaded for leverage code to work
@@ -217,7 +220,53 @@ condlik3 <- sum(dnbinom(model.response(model.frame(mm)),
 ## compare unconditional nll
 mm$obj$fn()
 
-system.time(trace_hat <- sum(leverage(mm)))
-cdf3 <- trace_hat+1
-c(clik = condlik3, cdf = cdf3, caic = 2*(-condlik3 + cdf3))
+if (FALSE) {
+    ## uses up memory on my 60Gb system, kills R session
+    system.time(trace_hat <- sum(leverage(mm)))
+    cdf3 <- trace_hat+1
+    c(clik = condlik3, cdf = cdf3, caic = 2*(-condlik3 + cdf3))
+}
+
+library(peakRAM)
+testfun <- function(nsubj = 100, ntax = 100, d = 2, seed = 101) {
+    set.seed(seed)
+    dd <- expand.grid(subject = factor(seq(nsubj)),
+                      taxon = factor(seq(ntax)))
+    ## hard-code d=2 for now (issues with scoping/evaluation)
+    dd$y <- simulate_new( ~ 1 + rr(taxon | subject, d = 2),
+                 family = nbinom2,
+                 newdata = dd,
+                 newparams = list(beta = 1,
+                                  betadisp = 1,
+                                  theta = rep(0.1, ntax*d - choose(d,2))))[[1]]
+    ## have to run this without parallelization, since we had to turn off
+    ## OpenMP for leverage calculations (we could try to load the full
+    ## version of glmmTMB with autopar for fitting the model, then
+    ## detach and load the glmmTMB_lev
+    p1 <- peakRAM(
+        mod <- glmmTMB(y ~ 1 + rr(taxon | subject, d = 2),
+                       family = nbinom2,
+                       data = dd)
+    )
+    tmpf <- function(x, task = "model_fit") {
+        names(x) <- c("task", "time_sec", "total_RAM_Mb", "peak_RAM_Mb")
+        x$task <- task
+        x <- data.frame(nsubj = nsubj, ntax = ntax, d = d, x)
+        return(x)
+    }
+    p2 <- peakRAM(leverage(mod))
+    rbind(tmpf(p1), tmpf(p2, task = "leverage"))
+}
+
+## test for a small example
+testframe <- expand.grid(nsubj = c(10, 20, 40),
+                         ntax = c(50, 100, 200))
+res <- list()
+for (i in seq(nrow(testframe))) {
+    nsubj <- testframe$nsubj[i]
+    ntax <- testframe$ntax[i]
+    cat(i, nsubj, ntax, "\n")
+    res[[i]] <- testfun(nsubj = nsubj, ntax = ntax)
+    saveRDS(res, "leverage_timings.rds")
+}
 
