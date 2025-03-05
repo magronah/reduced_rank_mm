@@ -192,10 +192,13 @@ logLik(fm0)
 
 
 mm <- readRDS("reproducible/rr_mod.rds")
+## do this *before* trying to do leverage computation!
+## this is a plausible value for the conditional log-likelihood ...
+-sum(dnbinom(model.frame(mm)$count, mu = fitted(mm), size = sigma(mm), log = TRUE))
+logLik(mm)
+mm$obj$fn()
+
 system.time(trace_hat <- sum(leverage(mm)))
 
 ## conditional AIC (no Z-I ...)
 
-## can we get the conditional log-likelihood from the sum of squares of the deviance residuals???
-## this *might* be it ... ??
--sum(dnbinom(model.frame(mm)$count, mu = fitted(mm), size = sigma(mm), log = TRUE))
