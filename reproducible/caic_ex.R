@@ -58,6 +58,10 @@ cAIC(fm0)
 c(clik = condlik2, cdf = cdf, caic = 2*(-condlik2 + cdf))
 
 mm <- readRDS("reproducible/rr_mod.rds")
+mf <- model.frame(mm)
+length(unique(mf$taxon))  ## 969 taxa
+length(unique(mf$site))   ## 8 'subjects'
+
 ## do this *before* trying to do leverage computation!
 ## this is a plausible value for the conditional log-likelihood ...
 condlik3 <- sum(dnbinom(model.response(model.frame(mm)),
