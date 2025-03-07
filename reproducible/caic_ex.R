@@ -1,159 +1,4 @@
-## run from head directory of reduced_rank_mm repo
-
-## need to modify src/Makevars in glmmTMB directory to contain this
-## (no fopenmp!)
-install_glmmTMB <- function(pkgdir, libdir, clean_src = TRUE) {
-    ## save existing src/Makevars, overwrite with what we want
-    flags <- c("PKG_CPPFLAGS = -DTMBAD_FRAMEWORK -DTMBAD_INDEX_TYPE=uint64_t -DTMB_MAX_ORDER=4",
-      "## PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)",
-      "## PKG_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS)")
-    td <- tempdir()
-    makevars <- file.path(pkgdir, "src", "Makevars")
-    file.rename(makevars, file.path(td, "Makevars"))
-    on.exit(file.rename(file.path(td, "Makevars"), makevars))
-    unlink(makevars)
-    writeLines(flags, makevars)
-    if (clean_src) {
-        unlink(list.files(file.path(pkgdir, "src"),
-                          pattern="\\.(o|so)$",
-                          full.names = TRUE))
-    }
-    if (!dir.exists(libdir)) dir.create(libdir)
-    system(sprintf("R CMD INSTALL -l %s %s",
-                   libdir, pkgdir))
-}
-
-## need to install this way (with location adjusted to your liking)
-## R CMD INSTALL -l ~/students/agronah/reduced_rank_mm/glmmTMB_lev glmmTMB
-
-## from https://github.com/glmmTMB/glmmTMB/blob/leverage/misc/leverage.R
-## @param diag Get diagonal only?
-leverage <- function(fm, diag=TRUE) {
-    has.random <- any(fm$obj$env$lrandom())
-    obj <- fm$obj
-    ## We mess with these... (cleanup on exit!)
-    restore.on.exit <- c("ADreport",
-                         "parameters",
-                         "data")
-    oldvars <- sapply(restore.on.exit, get, envir=obj$env, simplify=FALSE)
-    restore.oldvars <- function(){
-        for(var in names(oldvars)) assign(var, oldvars[[var]], envir=obj$env)
-    }
-    on.exit({restore.oldvars(); obj$retape()})
-    ## #################################################################
-    ## Get derivatives of prediction
-    ##
-    ##    mu_hat( b_hat( theta_hat(yobs), yobs) , theta_hat(yobs) )
-    ##
-    ## wrt. yobs.
-    ## Note the three partial derivative 'paths' to consider.
-    ## We can get this derivative by
-    ##  1. yobs -> theta_hat(yobs)
-    ##  2. theta -> mu_hat( b_hat( theta, yobs) , theta ) [fixed yobs]
-    ##  3. yobs -> mu_hat( b_hat( theta, yobs) , theta ) [fixed theta]
-    ## #################################################################
-    ##parhat <- obj$env$last.par.best
-    parhat <- fm$fit$parfull
-    pl <- obj$env$parList(par=parhat)
-    yobs <- obj$env$data$yobs
-    obj$env$parameters <- pl
-    theta <- parhat[!obj$env$lrandom()]  ## ALL top-level parameters
-    b <- parhat[obj$env$lrandom()]
-    if (!is.null(obj$env$spHess)) {
-        Hbb <- obj$env$spHess(parhat, random=TRUE) ## Needed later for RE models
-    }
-    ## #################################################################
-    ## 1. Get partial derivatives of theta_hat wrt to yobs
-    ## Note: length(yobs) much greater that length(theta)
-    ##       ==> Reverse mode AD is suitable !
-    ## #################################################################
-    ## Move 'yobs' from data -> parameters (preserve C++ template order!)
-    obj$env$parameters <- c(list(yobs = yobs), obj$env$parameters)
-    obj$env$data$yobs <- NULL
-    obj$retape()
-    ## New objective parameters: (yobs, b, theta)
-    nobs <- length(obj$env$parameters$yobs)
-    nb <- length(obj$env$random)
-    ntheta <- length(obj$env$par) - nobs - nb
-    TMB::config(tmbad.atomic_sparse_log_determinant=0, DLL="RTMB") ## TMB FIXME
-    F <- GetTape(obj)
-    r <- obj$env$random ## Which are random
-    p <- tail(1:(nobs+ntheta), ntheta) ## Which are parameters *after* removing random
-    ThetaHat <- F$laplace(r)$newton(p)
-    J <- ThetaHat$jacobian(ThetaHat$par())
-    ## Extra stuff we need in (3)
-    F. <- F$jacfun() ## (yobs, [b], theta) -> (yobs, [b], theta)
-    F. <- MakeTape(function(y) F.( c(y, parhat) ) [r] , yobs) ## yobs -> b
-    Hby <- F.$jacfun(sparse=TRUE)(yobs)
-    ## #################################################################
-    ## 2. Get partial derivatives of mu_hat wrt to theta for *fixed* yobs
-    ## Note: length(mu) much greater that length(theta)
-    ##       ==> Forward mode AD is suitable !
-    ## #################################################################
-    obj$env$data$yobs <- yobs
-    obj$env$parameters$yobs <- NULL
-    obj$retape()
-    r <- obj$env$random ## Which are now random
-    F <- GetTape(obj)
-    Bhat <- F$newton(r) ## theta -> bhat
-    obj$env$data$doPredict <- as.double(1) ## Enable prediction of 'mu'
-    obj$env$data$whichPredict <- as.double(1:nobs)
-    obj$env$ADreport <- TRUE ## Modify return value from Cpp
-    obj$retape()
-    F <- GetTape(obj) ## (b, theta) -> mu
-    ## This doesn't work:
-    ## MuHat <- MakeTape(function(theta)F(c(Bhat(theta), theta)), theta)
-    MuHat <- MakeTape(function(theta) {
-        par <- advector(nb + ntheta) ## glmmTMB mixes order of parameters and random effects...
-        r <- obj$env$lrandom()
-        par[r] <- Bhat(theta)
-        par[!r] <- theta
-        F(par)
-    } , theta)
-    ## 'Adjoint trick'
-    T2 <- MakeTape(function(weight) {
-        WT <- MakeTape(function(th) sum(MuHat(th) * weight), theta)
-        WT$jacfun()(advector(theta))
-    }, rep(1,nobs))
-    J2 <- T2$jacobian(yobs)
-    if (diag) {
-        term1 <- colSums(J*J2)
-    } else {
-        term1 <- t(J) %*% J2
-    }
-    ## #################################################################
-    ## 3. Get partial derivatives of mu_hat wrt yobs for fixed theta
-    ## Note: Tricky!
-    ##       
-    ## #################################################################
-    term2 <- 0
-    if (has.random) {
-        F2 <- MakeTape(function(b) {
-            par <- advector(nb + ntheta) ## glmmTMB mixes order of parameters and random effects...
-            r <- obj$env$lrandom()
-            par[r] <- b
-            par[!r] <- theta
-            F(par)
-        }, b) ## (b) -> mu
-        Hmb <- F2$jacfun(sparse=TRUE)(b) ## sparse deriv mu wrt b
-        ## Implicit function theorem gives final partial deriv matrix:
-        ##   - Hby %*% solve(Hbb) %*% Hbm
-        ## of which we need the diagonal.
-        ## Because mu and yobs link to the same random effects, all required b-cliques are part of Hbb !
-        ## It follows that we can replace solve(Hbb) by its subset iH !
-        if (diag) {
-            if (length(b) == 0) {
-                iH <- solve(Hbb)
-            } else {
-                iH <- TMB:::solveSubset(Hbb)
-            }
-            term2 <- -colSums( Hby * (  iH %*% t(Hmb) ) )
-        } else {
-            term2 <- -t(Hby) %*% solve(Hbb, t(Hmb))
-        }
-    }
-    term1 + term2
-}
+source("reproducible/leverage_funs.R")
 
 ## don't redo this unless necessary (slow)
 if (FALSE) {
@@ -259,14 +104,15 @@ testfun <- function(nsubj = 100, ntax = 100, d = 2, seed = 101) {
 }
 
 ## test for a small example
-testframe <- expand.grid(nsubj = c(10, 20, 40),
-                         ntax = c(50, 100, 200))
+testframe <- expand.grid(nsubj = seq(10, 40, by = 5),
+                         ntax = seq(50, 200, by = 25))
 res <- list()
 for (i in seq(nrow(testframe))) {
     nsubj <- testframe$nsubj[i]
     ntax <- testframe$ntax[i]
+    if (nsubj > 10 & ntax > 200) break
     cat(i, nsubj, ntax, "\n")
-    res[[i]] <- testfun(nsubj = nsubj, ntax = ntax)
+    res[[i]] <- peakRAM_testfun(nsubj = nsubj, ntax = ntax)
     saveRDS(res, "leverage_timings.rds")
 }
 

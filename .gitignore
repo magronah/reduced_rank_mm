@@ -54,3 +54,4 @@ heatmap_contour4_png
 !zinbmmref.rds
 !nbmm_pval.rds
 !zinbmm_pval.rds
+*.Rout
