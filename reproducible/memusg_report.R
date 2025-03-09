@@ -32,14 +32,18 @@ get_data <- function(metadata_fn = "testvals.csv", data_fn = "memusg.rds", dir =
 res <- get_data()
 
 res2 <- get_data("testvals2.csv", data_fn = "memusg2.rds",
-                 by_vars = c("ntax", "nsubj", "d", "include_ttt"))
+                 by_vars = c("ntax", "nsubj", "d", "include_ttt")) |>
 print(nrow(res2$mem))
 
 print(ggplot(res2$mem_trace, aes(time, rss_gb, colour = factor(ntax), linetype = include_ttt)) +
       geom_line() +
       facet_grid(d~nsubj, labeller = label_both) + zmargin +
-      labs(title= "memory use trace (Gb)")
+      labs(title= "memory use trace (Gb)") +
+      scale_x_continuous(limits = c(NA, 300), oob = scales::squish)
       )
+
+## did I guess right on increasing order? no ...
+plot(1:nrow(res2$mem), res2$mem$rss_max_gb)
 
 print(
     ggplot(res2$mem, aes(ntax, rss_max_gb, colour = factor(nsubj), linetype = factor(d))) +
@@ -47,9 +51,11 @@ print(
     geom_point() +
     scale_x_log10() +
     scale_y_log10() +
-    geom_smooth(method = "lm", formula = y ~ x) +
+    geom_smooth(method = "lm", formula = y ~ x, alpha = 0.1) +
     labs(title= "peak memory (Gb) vs ntaxa")
 )
+
+
 
 print(ggplot(res$mem_trace, aes(time, rss_gb, colour = factor(ntax))) + geom_line() +
       facet_wrap(~nsubj, labeller = label_both) + zmargin +
