@@ -41,13 +41,21 @@ print(ggplot(res2$mem_trace, aes(time, rss_gb, colour = factor(ntax), linetype =
       labs(title= "memory use trace (Gb)")
       )
 
+print(
+    ggplot(res2$mem, aes(ntax, rss_max_gb, colour = factor(nsubj), linetype = factor(d))) +
+    facet_wrap(~include_ttt, labeller = label_both) +
+    geom_point() +
+    scale_x_log10() +
+    scale_y_log10() +
+    geom_smooth(method = "lm", formula = y ~ x) +
+    labs(title= "peak memory (Gb) vs ntaxa")
+)
 
 print(ggplot(res$mem_trace, aes(time, rss_gb, colour = factor(ntax))) + geom_line() +
       facet_wrap(~nsubj, labeller = label_both) + zmargin +
       labs(title= "memory use trace (Gb)")
       )
 ## colorspace::scale_colour_discrete_sequential()
-
 
 
 print(
@@ -58,6 +66,7 @@ print(
     geom_smooth(method = "lm", formula = y ~ x) +
     labs(title= "peak memory (Gb) vs ntaxa")
 )
+
 
 print(
     ggplot(res$mem, aes(nsubj, rss_max_gb, colour = factor(ntax))) +
