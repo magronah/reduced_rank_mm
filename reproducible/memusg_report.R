@@ -4,20 +4,45 @@ library(magrittr)
 
 pdf("memusg.pdf")
 
-dd <- readRDS("memusg.rds")
-print(length(dd))
+get_data <- function(metadata_fn = "testvals.csv", data_fn = "memusg.rds", dir = "reproducible",
+                     by_vars = c("ntax", "nsubj")) {
+    
+    set_run <- . %>% mutate(across(run, ~ forcats::fct_inorder(factor(.))))
 
-set_run <- . %>% mutate(across(run, ~ forcats::fct_inorder(factor(.))))
-metadata <- read.csv("reproducible/testvals.csv") |>
-    mutate(run = seq(n())) |>
-    set_run()
+    dd <- readRDS(file.path(dir, data_fn))
+    metadata <- read.csv(file.path(dir, metadata_fn)) |>
+        mutate(run = seq(n())) |>
+        set_run()
 
-res <- map_dfr(dd, ~.[["memory_use"]], .id = "run") |>
-    set_run() |>
-    right_join(x = metadata, by = "run") |>
-    mutate(rss_gb = rss/1e9)
+    res <- map_dfr(dd, ~.[["memory_use"]], .id = "run") |>
+        set_run() |>
+        right_join(x = metadata, by = "run") |>
+        mutate(rss_gb = rss/1e9)
 
-print(ggplot(res, aes(time, rss_gb, colour = factor(ntax))) + geom_line() +
+    res_time <- map_dfr(dd, ~.[["result"]], .id = "run") |>
+        set_run()
+
+    sum_res <- (res
+        |> summarise(rss_max_gb = max(rss_gb), .by = all_of(by_vars))
+    )
+    
+    return(list(mem_trace = res, mem = sum_res, time = res_time))
+}
+
+res <- get_data()
+
+res2 <- get_data("testvals2.csv", data_fn = "memusg2.rds",
+                 by_vars = c("ntax", "nsubj", "d", "include_ttt"))
+print(nrow(res2$mem))
+
+print(ggplot(res2$mem_trace, aes(time, rss_gb, colour = factor(ntax), linetype = include_ttt)) +
+      geom_line() +
+      facet_grid(d~nsubj, labeller = label_both) + zmargin +
+      labs(title= "memory use trace (Gb)")
+      )
+
+
+print(ggplot(res$mem_trace, aes(time, rss_gb, colour = factor(ntax))) + geom_line() +
       facet_wrap(~nsubj, labeller = label_both) + zmargin +
       labs(title= "memory use trace (Gb)")
       )
@@ -25,13 +50,8 @@ print(ggplot(res, aes(time, rss_gb, colour = factor(ntax))) + geom_line() +
 
 
 
-## find max (? quantile ?)
-sum_res <- (res
-    |> summarise(rss_max_gb = max(rss_gb), .by = c("ntax", "nsubj"))
-)
-
 print(
-    ggplot(sum_res, aes(ntax, rss_max_gb, colour = factor(nsubj))) +
+    ggplot(res$mem, aes(ntax, rss_max_gb, colour = factor(nsubj))) +
     geom_point() +
     scale_x_log10() +
     scale_y_log10() +
@@ -40,7 +60,7 @@ print(
 )
 
 print(
-    ggplot(sum_res, aes(nsubj, rss_max_gb, colour = factor(ntax))) +
+    ggplot(res$mem, aes(nsubj, rss_max_gb, colour = factor(ntax))) +
     geom_point() +
     scale_x_log10() +
     scale_y_log10() +
@@ -49,31 +69,29 @@ print(
 )
 
 print(
-    lm(log(rss_max_gb) ~ log(ntax)+ factor(nsubj), data = sum_res)
+    lm(log(rss_max_gb) ~ log(ntax)+ factor(nsubj), data = res$mem)
 )
 ## scaling 1.83
 
 print(
-    lm(log(rss_max_gb) ~ factor(ntax)+ log(nsubj), data = sum_res)
+    lm(log(rss_max_gb) ~ factor(ntax)+ log(nsubj), data = res$mem)
 )
 
 ## scaling 0.92
 print(
-    lm(log(rss_max_gb) ~ factor(ntax) + factor(ntax):log(nsubj), data = sum_res)
+    lm(log(rss_max_gb) ~ factor(ntax) + factor(ntax):log(nsubj), data = res$mem)
 )
 ## slightly larger: 0.79, 0.94, 0.96, ..., 0.92
 
-full <- lm(log(rss_max_gb) ~ log(ntax)*log(nsubj), data = sum_res)
+full <- lm(log(rss_max_gb) ~ log(ntax)*log(nsubj), data = res$mem)
 print(exp(predict(full, newdata = list(ntax=969, nsubj = 8))))  ## 588 Gb
 
 ## could do another scaling to predict time ...
 
-res_time <- map_dfr(dd, ~.[["result"]], .id = "run") |>
-    set_run()
 
 print(
     ## nsubj == 5 is a little wonky (too short to be reliable for model fit)
-    ggplot(filter(res_time, nsubj > 5),
+    ggplot(filter(res$time, nsubj > 5),
            aes(nsubj, time_sec, colour = factor(ntax))) +
     geom_point() +
     scale_x_log10() +
@@ -84,7 +102,7 @@ print(
 )
 
 print(
-    ggplot(filter(res_time, nsubj>5),
+    ggplot(filter(res$time, nsubj>5),
            aes(ntax, time_sec, colour = factor(nsubj))) +
     geom_point() +
     scale_x_log10() +
@@ -94,7 +112,7 @@ print(
     labs(title= "time (sec) vs ntax")
 )
 
-full_time <- lm(log(time_sec) ~ log(ntax)*log(nsubj), data = res_time,
+full_time <- lm(log(time_sec) ~ log(ntax)*log(nsubj), data = res$time,
                 subset = (task == "leverage"))
 print(exp(predict(full_time, newdata = list(ntax=969, nsubj = 8))))  ## 11000 seconds
 ## = 3+hours

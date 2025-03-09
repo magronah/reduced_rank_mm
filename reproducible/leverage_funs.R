@@ -27,6 +27,8 @@ install_glmmTMB <- function(pkgdir, libdir, clean_src = TRUE) {
 ## from https://github.com/glmmTMB/glmmTMB/blob/leverage/misc/leverage.R
 ## @param diag Get diagonal only?
 leverage <- function(fm, diag=TRUE) {
+    library(RTMB)
+    library(Matrix)
     has.random <- any(fm$obj$env$lrandom())
     obj <- fm$obj
     ## We mess with these... (cleanup on exit!)
@@ -153,33 +155,56 @@ leverage <- function(fm, diag=TRUE) {
     term1 + term2
 }
 
-peakRAM_testfun <- function(nsubj = 100, ntax = 100, d = 2, seed = 101) {
+peakRAM_testfun <- function(nsubj = 100, ntax = 100, d = 2,
+                            include_ttt = FALSE, seed = 101,
+                            vars_include = c("nsubj", "ntax", "d", "include_ttt")) {
+
+    if (packageVersion("glmmTMB") < "1.1.11") stop("are you using the formula_env branch?")
+    ## must assume we are using the `formula_env` branch of glmmTMB!! hard to test though
+
+    library(peakRAM)
+
+    ##
     set.seed(seed)
     dd <- expand.grid(subject = factor(seq(nsubj)),
                       taxon = factor(seq(ntax)))
-    ## hard-code d=2 for now (issues with scoping/evaluation)
-    dd$y <- simulate_new( ~ 1 + rr(taxon | subject, d = 2),
+    dd$group <- factor(ifelse(as.numeric(dd$subject) < nsubj %/% 2, "a", "b"))
+
+    if (include_ttt) {
+        form <- y  ~ 1 + us(1 + group | taxon) + rr(0 + taxon | subject, d)
+    } else {
+        form <- y ~ 1 + rr(0 + taxon | subject, d)
+    }
+    dd$y <- simulate_new( form[-2],
                  family = nbinom2,
                  newdata = dd,
+                 control = list(set_formula_env = FALSE),
                  newparams = list(beta = 1,
                                   betadisp = 1,
-                                  theta = rep(0.1, ntax*d - choose(d,2))))[[1]]
+                                  theta = rep(0.1, ntheta(nsubj, ntax, d, include_ttt)))
+                 )[[1]]
     ## have to run this without parallelization, since we had to turn off
     ## OpenMP for leverage calculations (we could try to load the full
     ## version of glmmTMB with autopar for fitting the model, then
     ## detach and load the glmmTMB_lev
     p1 <- peakRAM(
-        mod <- glmmTMB(y ~ 1 + rr(taxon | subject, d = 2),
+        mod <- glmmTMB(form,
                        family = nbinom2,
                        data = dd)
     )
     tmpf <- function(x, task = "model_fit") {
         names(x) <- c("task", "time_sec", "total_RAM_Mb", "peak_RAM_Mb")
         x$task <- task
-        x <- data.frame(nsubj = nsubj, ntax = ntax, d = d, x)
+        v <- mget(vars_include, inherits = TRUE)
+        x <- do.call(data.frame, c(v, list(x)))
         return(x)
     }
     p2 <- peakRAM(leverage(mod))
     rbind(tmpf(p1), tmpf(p2, task = "leverage"))
 }
 
+
+ntheta <- function(nsubj = 100, ntax = 100, d = 2, include_ttt = FALSE) {
+    rr_n <- ntax*d - choose(d,2)
+    rr_n + ifelse(include_ttt, 3, 0)
+}
