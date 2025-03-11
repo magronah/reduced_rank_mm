@@ -109,6 +109,12 @@ print(
 full <- lm(log(rss_max_gb) ~ log(ntax)*log(nsubj), data = res$mem)
 print(exp(predict(full, newdata = list(ntax=969, nsubj = 8))))  ## 588 Gb
 
+full2 <- lm(log(rss_max_gb) ~ log(ntax)*log(nsubj)*factor(d)*factor(include_ttt), data = res2$mem)
+
+full_restr <- lm(log(rss_max_gb) ~ (1 + log(ntax)+log(nsubj)):factor(d):factor(include_ttt), data = res2$mem)
+
+print(exp(predict(full2, newdata = list(ntax=969, nsubj = 8, include_ttt = TRUE, d = 2))))
+
 ## could do another scaling to predict time ...
 
 
