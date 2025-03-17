@@ -32,7 +32,7 @@ crohn_models <- load_models(crohn_path, filenames)
 soil_models   <- load_models(soil_path, filenames)
 
 # Assigning names 
-mod_names <- c("RR","RRzi","US","USzi","Nbmm","Zinbmm","DE")
+mod_names <- c("RR","RRzi","US","USzi","NB","ZNB","DE")
 names(autism_models)    =   names(atlass_models)  =    mod_names
 names(crohn_models)    =   names(soil_models)    =    mod_names
 mod_list    =   lst(autism_models,atlass_models,crohn_models,soil_models)
@@ -48,9 +48,9 @@ res     =  lapply(mod_list, function(x){
                            if (length(na_indices) > 0) {
                              df1$AICc[na_indices] <- sapply(na_indices, function(i) my_aicc_fun(pp[[df1$Modnames[i]]]))
                            }
-                           df2  <- data.frame(Modnames =  c("Nbmm", "Zinbmm", "DE"),
-                                              AICc     =  c(Nbmm   =  x$Nbmm,
-                                                            Zinbmm =  x$Zinbmm,
+                           df2  <- data.frame(Modnames =  c("NB", "ZNB", "DE"),
+                                              AICc     =  c(NB   =  x$NB,
+                                                            ZNB =  x$ZNB,
                                                               DE   =   x$DE))
                            df   =   rbind(df1, df2)
                            df = bind_rows(df1, df2) %>%
@@ -94,7 +94,7 @@ CI_filenames <- c(
 
 ##############################################################
 autism_confint <-  load_models(autism_path, CI_filenames)
-atlass_confint <-  load_models(atlass_path, CI_filenames)
+#atlass_confint <-  load_models(atlass_path, CI_filenames)
 crohn_confint  <-  load_models(crohn_path, CI_filenames)
 soil_confint   <-  load_models(soil_path, CI_filenames)
 

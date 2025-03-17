@@ -15,9 +15,11 @@ titles  =   c("50 subjects per group and 300 taxa",
 ########################################################
 n = 14; p1  =   p2   =  p3 =  p4  = p5  = p6 = p7 = list()
 BIAS = VARIAN  =  list()
+
+#i =  1 
 for(i in 1:length(strg)){
   ########################################################
-  path  =   paste0(strg[[i]])
+  path  =   paste0(strg[[i]]) 
   dd    =   load_data(path) 
 
   conf =  dd$confint
@@ -30,42 +32,42 @@ for(i in 1:length(strg)){
     geom_line() +   
     geom_point(aes(x = param_name, y = true_param, color = "true group effect"), 
                size = 1.5, shape = 17) +   
+    ylim(-5, 5)  +# Set y-axis limits
     # scale_color_manual(
     #   values = c("blue", "red", "green", "black", "purple", "orange", "cyan"),  
     #   name = "Model"
     # ) +  
     labs(title = titles[[i]],
          x = "Taxa",   
-         y = "Average group effect size estimate across simulations",
-         color = "Model") +   
-    theme_bw(base_size = n) +  
+         y = "Average group effect estimates",
+         color = "Model") +  
+    theme_bw(base_size = n) +
     theme(
-      plot.title = element_text(hjust = 0.5),
+      plot.title = element_text(hjust = 0.5, size = n),
       panel.grid = element_blank(),
       axis.text.x = element_blank(),  
       axis.ticks.x = element_blank(),
       text = element_text(size = n, family = "Roboto")
-    ) 
-
+    )  
   #####################################################
   mse   =   err_extract(dd, "avg_mse")
   bias  =   err_extract(dd, "avg_bias")
   var   =   err_extract(dd, "avg_var")
   
-  
   p2[[i]] = ggplot(mse, aes(model, average_value)) +
-    geom_point() +
+    geom_point() + 
+    geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2) +
     geom_hline(yintercept = mse["RRzi",1], linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title= titles[[i]],
          y = "Average RMSE across taxa",
-           #"Comparison of average RMSE across taxa",
          x = " "
          )
   
   BIAS[[i]] = bias
   p3[[i]] = ggplot(bias, aes(model, average_value)) +
     geom_point() +
+    geom_errorbar(aes(ymin = lwr, ymax = upr),  width = 0.2) +
     geom_hline(yintercept = bias["RRzi",1], linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title = titles[[i]],
@@ -75,13 +77,14 @@ for(i in 1:length(strg)){
   
   
   VARIAN[[i]] = var
-  p4[[i]] = ggplot(var, aes(model, log(average_value))) +
+  p4[[i]] = ggplot(var, aes(model, (average_value))) +
     geom_point() +
-    geom_hline(yintercept = log(var["RRzi",1]), linetype = "dashed", color = "red") +
+    geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2) +
+    geom_hline(yintercept = (var["RRzi",1]), linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title = titles[[i]],
          x = " ",
-         y = "log(Average variance of error across taxa)"
+         y = "(Average variance of error across taxa)"
          #"Comparison of average bias across taxa",x = " ",y = "Average Bias"
     )
   
@@ -130,7 +133,31 @@ for(i in 1:length(strg)){
     geom_point() +
     custom_theme(n)
 }
+##################################################################
+trend <- (p1[[1]]|p1[[2]]|p1[[3]]) + plot_layout(guides = "collect")  
+size = 3; width =  20; height =  5; dpi = 300
+ggsave("fig/trend2.png", plot = trend, 
+       width = width, 
+       height = height, 
+       dpi = dpi)
 
+rmse <- (p2[[1]]|p2[[2]]|p2[[3]]) + plot_layout(guides = "collect")  
+ggsave("fig/rmse.png", plot = rmse, 
+       width = width, 
+       height = height, 
+       dpi = dpi)
+
+bias <- (p3[[1]]|p3[[2]]|p3[[3]]) + plot_layout(guides = "collect")  
+ggsave("fig/bias2.png", plot = bias, 
+       width = width, 
+       height = height, 
+       dpi = dpi)
+
+var_p <- (p4[[1]]|p4[[2]]|p4[[3]]) + plot_layout(guides = "collect")  
+ggsave("fig/var_plt.png", plot = var_p, 
+       width = width, 
+       height = height, 
+       dpi = dpi)
 ##################################################################
 filenames  <-  c("us.rds", "uszi.rds", "rr.rds")
 path       =   paste0(strg[[3]])
@@ -193,9 +220,7 @@ ggsave("fig/power.png", plot = plt1,
 
 plt0 + plt1
 ####################################################################
-combined_plot <- (p1[[1]]|p1[[2]]|p1[[3]]) + plot_layout(guides = "collect") 
-                  theme(legend.position='bottom')
-                  
+
                   
 ########################################################
 library(dplyr)

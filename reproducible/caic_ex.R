@@ -2,11 +2,11 @@ source("reproducible/leverage_funs.R")
 
 ## don't redo this unless necessary (slow)
 if (FALSE) {
-    install_glmmTMB(pkgdir = "~/R/pkgs/glmmTMB/glmmTMB",
-                    libdir = "glmmTMB_lev")
+    install_glmmTMB(pkgdir = "~/Documents/glmmTMB/glmmTMB",
+                    libdir = "~/Documents/glmmTMB_lev")
 }
 
-library(glmmTMB, lib.loc = "glmmTMB_lev")
+library(glmmTMB, lib.loc = "~/Documents/glmmTMB_lev")
 ## both of these packages *must* be loaded for leverage code to work
 library(RTMB)
 library(Matrix)

@@ -499,7 +499,8 @@ deseq_noShrinkL2  =  readRDS(paste0(path, "deseq_noShrink.rds"))
 }
 
 
-error_cal <- function(model_est_dd, true_param_dd, model) {
+error_cal <- function(model_est_dd, true_param_dd, model,
+                      lwr  =  0.025, upr = 0.975, sdrr = FALSE) {
   
   est_dd  =   model_est_dd %>%
     rownames_to_column(var = "param_name")
@@ -527,8 +528,34 @@ error_cal <- function(model_est_dd, true_param_dd, model) {
   df3$model   =  rep(model,nrow(df3)) 
   df4$model   =  rep(model,nrow(df4)) 
   
+  scale = 1.96
+  if(sdrr){
+    df2$mean     =   mean(df1$bias)
+    df2$lwr     =   mean(df1$bias) -  sd(df1$bias)/length(df1$bias)
+    df2$upr     =   mean(df1$bias) + sd(df1$bias)/length(df1$bias)
+    ##############
+    rrm        =  sqrt(df1$mse)
+    df3$mean  =   mean(rrm)
+    df3$lwr   =   mean(rrm) -  scale*sd(rrm)/length(rrm)
+    df3$upr   =   mean(rrm) +  scale*sd(rrm)/length(rrm)
+    
+    df4$mean     =   mean(df1$variance)
+    df4$lwr   =   mean(df1$variance) -  scale*sd(df1$variance)/length(df1$variance)
+    df4$upr   =   mean(df1$variance) +  scale*sd(df1$variance)/length(df1$variance)
+  }else{
+    df2$lwr     =   quantile(df1$bias, lwr)
+    df2$upr     =   quantile(df1$bias, upr)
+    
+    ##############
+    df3$lwr   =   quantile(sqrt(df1$mse) , lwr)
+    df3$upr   =   quantile(sqrt(df1$mse) , upr)
+    
+    df4$lwr   =   quantile(df1$variance , lwr)
+    df4$upr   =   quantile(df1$variance , upr)
+  }
   
-  res     =   lst(full_summary_dd =   df1, error, 
+  
+   res     =   lst(full_summary_dd =   df1, error, 
                     avg_bias      =   df2, 
                       avg_mse     =   df3,
                        avg_var    =   df4)
