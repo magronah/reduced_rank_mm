@@ -76,6 +76,17 @@ condlik3 <- sum(dnbinom(model.response(model.frame(mm)),
 ## compare unconditional nll
 mm$obj$fn()
 
+conditional_ll <-  function(mod){
+  
+  condlik3 <- sum(dnbinom(model.response(model.frame(mod)),
+                          mu = fitted(mod), size = sigma(mod), 
+                          log = TRUE))
+  
+  system.time(trace_hat <- sum(leverage(mod)))
+  cdf3 <- trace_hat+1
+  c(clik = condlik3, cdf = cdf3, caic = 2*(-condlik3 + cdf3))
+}
+  
 if (FALSE) {
     ## uses up memory on my 60Gb system, kills R session
     system.time(trace_hat <- sum(leverage(mm)))
