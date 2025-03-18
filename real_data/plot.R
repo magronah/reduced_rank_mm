@@ -94,7 +94,7 @@ CI_filenames <- c(
 
 ##############################################################
 autism_confint <-  load_models(autism_path, CI_filenames)
-#atlass_confint <-  load_models(atlass_path, CI_filenames)
+atlass_confint <-  load_models(atlass_path, CI_filenames)
 crohn_confint  <-  load_models(crohn_path, CI_filenames)
 soil_confint   <-  load_models(soil_path, CI_filenames)
 

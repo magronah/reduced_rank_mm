@@ -18,7 +18,8 @@ filenames <- c(
   "rr_mod.rds",
   "rrzi_mod.rds",
   "us_mod.rds",
-  "uszi_each_mod.rds",
+  "uszi_mod.rds",
+  # "uszi_each_mod.rds",
   "nbmm_mod.rds",
   "zinbmm_mod.rds",
   "deseq_mod_est.rds"  
@@ -54,9 +55,9 @@ crohn_ntaxa   <-  load_models(crohn_path,  ntaxa_file)
 soil_ntaxa    <-  load_models(soil_path, ntaxa_file) 
 ############################################################
 datasets <- list(
-  #autism  = list(model = autism_us_rr, ntaxa = autism_ntaxa, path  = autism_path),
+  autism  = list(model = autism_us_rr, ntaxa = autism_ntaxa, path  = autism_path),
   atlass  = list(model = atlass_us_rr, ntaxa = atlass_ntaxa, path = atlass_path),
-  #crohn   = list(model = crohn_us_rr,  ntaxa = crohn_ntaxa, path = crohn_path),
+  crohn   = list(model = crohn_us_rr,  ntaxa = crohn_ntaxa, path = crohn_path),
   soil    = list(model = soil_us_rr,   ntaxa = soil_ntaxa, path = soil_path)
 )
 
@@ -69,28 +70,28 @@ for (name in names(datasets)) {
   
    mu_count  =   readRDS(paste0(path_dir,"mean_count.rds"))
    
-   # confint_us <- wald_confint(mod  = model$US,
-   #                            ntaxa = ntax,
-   #                            mean_count = mu_count,
-   #                            mod_name = "us",
-   #                            path = path_dir)
+   confint_us <- wald_confint(mod  = model$US,
+                              ntaxa = ntax,
+                              mean_count = mu_count,
+                              mod_name = "us",
+                              path = path_dir)
 
-   # confint_uszi <- wald_confint(mod  = model$USzi,
-   #                            ntaxa = ntax,
-   #                            mean_count = mu_count,
-   #                            mod_name = "uszi",
-   #                            path = path_dir)
+   confint_uszi <- wald_confint(mod  = model$USzi,
+                              ntaxa = ntax,
+                              mean_count = mu_count,
+                              mod_name = "uszi",
+                              path = path_dir)
 
-   # saveRDS(confint_us, file = paste0(path_dir, "CI_us.rds"))
-   # saveRDS(confint_uszi, file = paste0(path_dir, "CI_uszi.rds"))
+   saveRDS(confint_us, file = paste0(path_dir, "CI_us.rds"))
+   saveRDS(confint_uszi, file = paste0(path_dir, "CI_uszi.rds"))
    ###########################################################
-   # confint_rr <- wald_confint(mod  = model$RR,
-   #                            ntaxa = ntax,
-   #                            mean_count = mu_count,
-   #                            mod_name = "rr",
-   #                            path = path_dir)
-   # 
-   # saveRDS(confint_rr, file = paste0(path_dir, "CI_rr.rds"))
+   confint_rr <- wald_confint(mod  = model$RR,
+                              ntaxa = ntax,
+                              mean_count = mu_count,
+                              mod_name = "rr",
+                              path = path_dir)
+
+   saveRDS(confint_rr, file = paste0(path_dir, "CI_rr.rds"))
    # ###########################################################
    confint_rrzi <- wald_confint(mod  = model$RRzi,
                                 ntaxa = ntax,
