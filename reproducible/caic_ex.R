@@ -1,12 +1,19 @@
+setwd("/home/agronahm/projects/def-bolker/agronahm/reduced_rank_mm/")
 source("reproducible/leverage_funs.R")
 
 ## don't redo this unless necessary (slow)
 if (FALSE) {
-    install_glmmTMB(pkgdir = "~/Documents/glmmTMB/glmmTMB",
-                    libdir = "~/Documents/glmmTMB_lev")
+#/home/agronahm/projects/def-bolker/agronahm/reduced_rank_mm
+    install_glmmTMB(pkgdir = "/home/agronahm/projects/def-bolker/agronahm/glmmTMB/glmmTMB",
+                    libdir = "/home/agronahm/projects/def-bolker/agronahm/glmmTMB_lev")
+
+   # install_glmmTMB(pkgdir = "~/Documents/glmmTMB/glmmTMB",
+   #                 libdir = "~/Documents/glmmTMB_lev")
 }
 
-library(glmmTMB, lib.loc = "~/Documents/glmmTMB_lev")
+
+library(glmmTMB, lib.loc = "/home/agronahm/projects/def-bolker/agronahm/glmmTMB_lev")
+
 ## both of these packages *must* be loaded for leverage code to work
 library(RTMB)
 library(Matrix)
@@ -136,3 +143,4 @@ gg0 <- ggplot(res_long, aes(nsubj, value, colour= factor(ntax))) +
 print(gg0)
 
 print(gg0 + aes(x=ntax, colour = factor(nsubj)))
+
