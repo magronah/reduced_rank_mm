@@ -56,6 +56,4 @@ heatmap_contour4_png
 !zinbmm_pval.rds
 *.Rout
 !caic_us.rds
-!caic_uszi.rds
-!caic_rr.rds
-!caic_rrzi.rds
+!
