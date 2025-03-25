@@ -4,6 +4,9 @@ library(dplyr)
 library(patchwork)
 library(AICcmodavg)
 library(here)
+library(tidyverse)
+# library(tidyr)
+library(purrr)
 ##############################################################
 path1   =   paste0("real_data/")
 source(paste0(path1,"fun.R"))
@@ -36,7 +39,64 @@ mod_names <- c("RR","RRzi","US","USzi","NB","ZNB","DE")
 names(autism_models)    =   names(atlass_models)  =    mod_names
 names(crohn_models)    =   names(soil_models)    =    mod_names
 mod_list    =   lst(autism_models,atlass_models,crohn_models,soil_models)
-##################################################################################
+######################################################################
+##AIC comparison
+caic_files <- c(US   = "caic_us.rds",
+                USzi = "caic_uszi.rds"
+                #RR   = "caic_rr.rds",
+                #RRzi = "caic_rrzi.rds"
+                ) 
+
+other_aic <- c(NB   = "nbmm_aicc.rds",
+               ZNB  = "zinbmm_aicc.rds",
+               DE   = "deseq_aicc.rds") 
+#######################################################
+# Load models for autism data
+atlass_caic <- load_models(atlass_path, caic_files)
+crohn_caic  <- load_models(crohn_path, caic_files)
+autism_caic <- load_models(autism_path, caic_files)
+soil_caic   <- load_models(soil_path, caic_files)
+
+atlass_other <- load_models(atlass_path, other_aic)
+crohn_other  <- load_models(crohn_path, other_aic)
+autism_other <- load_models(autism_path, other_aic)
+soil_other  <- load_models(soil_path, other_aic)
+#######################################################
+names(autism_caic) = names(atlass_caic) = names(caic_files)
+names(crohn_caic) = names(soil_caic) = names(caic_files)
+
+names(autism_other) = names(atlass_other) = names(other_aic)
+names(crohn_other) = names(soil_other) = names(other_aic)
+
+caic_list     =  lst(autism_caic, atlass_caic, crohn_caic, soil_caic)
+
+otheraic_list =  list(autism_caic =  autism_other, 
+                     atlass_caic  =  atlass_other, 
+                     crohn_caic   =  crohn_other, 
+                     soil_caic    =  soil_other)
+#######################################################
+caic_df <- caic_list %>%
+  map_dfr(~map_df(.x, ~tibble(Name = names(.x), Estimate = .x), 
+                  .id = "Model"), .id = "Dataset") 
+
+caic_dd <- caic_df  %>% filter(Name == "caic")
+other_aicc_dd <- otheraic_list %>%
+              map_dfr(~map_df(.x, ~tibble(Name = names(.x), Estimate = .x), 
+                              .id = "Model"), .id = "Dataset") 
+other_aicc_dd$Name  = "aicc"
+
+aic_df  = rbind(caic_dd,other_aicc_dd) %>% arrange(Dataset)
+
+aic =  aic_df   %>%
+       group_by(Dataset) %>%
+       mutate(Delta_AIC = Estimate - min(Estimate)) %>%
+       ungroup()
+#######################################################
+ggplot(aic, aes(Model,Delta_AIC)) +
+  geom_point() +
+  custom_theme(11) +
+  facet_wrap(~Dataset, scale="free")
+ #######################################################
 res     =  lapply(mod_list, function(x){
                            pp  =  list(RR = x$RR, RRzi = x$RRzi,
                                        US = x$US, USzi =x$USzi)
@@ -59,6 +119,7 @@ res     =  lapply(mod_list, function(x){
                            df
                            })
 
+res
 #' the 4th data set fitting zi for each taxa leads to worse AICc
 #' Nothing changes for the 3rd dataset in terms of the order but each zi is better
 #' 

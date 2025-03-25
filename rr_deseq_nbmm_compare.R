@@ -13,10 +13,9 @@ titles  =   c("50 subjects per group and 300 taxa",
              "75 subjects per group and 500 taxa",
              "100 subjects per group and 600 taxa")
 ########################################################
-n = 14; p1  =   p2   =  p3 =  p4  = p5  = p6 = p7 = list()
+n = 20; p1  =   p2   =  p3 =  p4  = p5  = p6 = p7 = list()
 BIAS = VARIAN  =  list()
 
-#i =  1 
 for(i in 1:length(strg)){
   ########################################################
   path  =   paste0(strg[[i]]) 
@@ -77,14 +76,14 @@ for(i in 1:length(strg)){
   
   
   VARIAN[[i]] = var
-  p4[[i]] = ggplot(var, aes(model, (average_value))) +
+  p4[[i]] = ggplot(var, aes(model, average_value)) +
     geom_point() +
     geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2) +
     geom_hline(yintercept = (var["RRzi",1]), linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title = titles[[i]],
          x = " ",
-         y = "(Average variance of error across taxa)"
+         y = "Average variance of error across taxa"
          #"Comparison of average bias across taxa",x = " ",y = "Average Bias"
     )
   
@@ -135,7 +134,7 @@ for(i in 1:length(strg)){
 }
 ##################################################################
 trend <- (p1[[1]]|p1[[2]]|p1[[3]]) + plot_layout(guides = "collect")  
-size = 3; width =  20; height =  5; dpi = 300
+size = 3; width =  25; height =  7; dpi = 300
 ggsave("fig/trend2.png", plot = trend, 
        width = width, 
        height = height, 

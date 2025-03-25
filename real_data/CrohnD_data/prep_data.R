@@ -17,11 +17,11 @@ CCFA_phylo <- phyloseq(otu_table(as.matrix(RISK_CCFA_otu), taxa_are_rows = TRUE)
                        sample_data(RISK_CCFA_sam), 
                        tax_table(as.matrix(RISK_CCFA_tax)))
 
-View(otu_table(CCFA_phylo,taxa_are_rows = TRUE)) # 9511 taxa 1359 samples
-View(sample_data(RISK_CCFA_sam)) # 9511 taxa 1359 samples
-# View(tax_table(CCFA_phylo))
-
-
+dim(otu_table(CCFA_phylo,taxa_are_rows = TRUE)) # 9511 taxa 1359 samples
+vv=(sample_data(RISK_CCFA_sam)) # 1359   73
+#View(tax_table(CCFA_phylo))
+unique(vv$diagnosis)
+unique(vv$diagnosis)
 # drop low abundant taxa and samples
 dat <- CCFA_phylo %>% 
   subset_samples(disease_stat!="missing", 
@@ -29,11 +29,15 @@ dat <- CCFA_phylo %>%
   subset_samples(diagnosis %in% c("no", "CD")) %>% 
   subset_samples(steroids=="false") %>% 
   subset_samples(antibiotics=="false") %>% 
-  subset_samples(biologics=="false") %>% 
+  subset_samples(biologics=="false")  %>% 
   subset_samples(biopsy_location=="Terminal ileum") %>% 
   tax_glom("Family") %>% 
   prune_samples(sample_sums(.) >= 5000,.) %>%
   filter_taxa(function(x) sum(x > 3) > 0.10*length(x), TRUE)
+
+dim(otu_table(dat,taxa_are_rows = TRUE))
+
+##' we consider various 
 ########################################################################
 sample_dat <- as.data.frame(as(sample_data(dat),"matrix")) %>% 
   mutate(age = as.numeric(as.character(age)),
@@ -44,9 +48,10 @@ data    =   t(otu_table(dat))  %>%
           as.data.frame()  %>% 
           setNames(paste0("taxon",1:ncol(t(otu_table(dat))))) 
 
-dd  <- data[, apply(data, 2, function(col) any(col == 0))]
+dd  <-  data[, apply(data, 2, function(col) any(col == 0))]
 dd  <-  dd[,-3]  #zinbmm cannot fit this as it says there is an NA
                  #I have not find NA though 
+
 meta_dd  = sample_dat %>%  
           dplyr::select(diagnosis,age) %>%
           rownames_to_column()   %>%
