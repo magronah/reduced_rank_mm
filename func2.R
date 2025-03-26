@@ -423,8 +423,8 @@ otu_meta_lst_fun = function(res_dd1){
 custom_theme <- function(n) {
   theme_bw(base_size = n) +
     theme(
-      plot.title = element_text(hjust = 0.5),
-      text = element_text(size = n, family = "Roboto"),
+      plot.title = element_text(hjust = 0.5,size = n, family = "Roboto",color = "black"),
+      text = element_text(size = n, family = "Roboto",color = "black"),
       axis.text.x = element_text(family = "Roboto", size = n, color = "black"),
       axis.text.y = element_text(family = "Roboto", size = n, color = "black")
     )

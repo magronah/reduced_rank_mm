@@ -5,7 +5,6 @@ library(patchwork)
 library(AICcmodavg)
 library(here)
 library(tidyverse)
-# library(tidyr)
 library(purrr)
 ##############################################################
 path1   =   paste0("real_data/")
@@ -42,9 +41,9 @@ mod_list    =   lst(autism_models,atlass_models,crohn_models,soil_models)
 ######################################################################
 ##AIC comparison
 caic_files <- c(US   = "caic_us.rds",
-                USzi = "caic_uszi.rds"
-                #RR   = "caic_rr.rds",
-                #RRzi = "caic_rrzi.rds"
+                USzi = "caic_uszi.rds",
+                RR   = "caic_rr.rds",
+                RRzi = "caic_rrzi.rds"
                 ) 
 
 other_aic <- c(NB   = "nbmm_aicc.rds",
@@ -62,18 +61,20 @@ crohn_other  <- load_models(crohn_path, other_aic)
 autism_other <- load_models(autism_path, other_aic)
 soil_other  <- load_models(soil_path, other_aic)
 #######################################################
-names(autism_caic) = names(atlass_caic) = names(caic_files)
-names(crohn_caic) = names(soil_caic) = names(caic_files)
+names(autism_caic) = names(soil_caic)= names(caic_files)
+names(crohn_caic) = names(atlass_caic)  = names(caic_files)
 
 names(autism_other) = names(atlass_other) = names(other_aic)
 names(crohn_other) = names(soil_other) = names(other_aic)
 
-caic_list     =  lst(autism_caic, atlass_caic, crohn_caic, soil_caic)
+# caic_list     =  lst(autism_caic, atlass_caic, crohn_caic, soil_caic)
+caic_list     =  lst(atlass_caic, crohn_caic)
 
-otheraic_list =  list(autism_caic =  autism_other, 
+otheraic_list =  list(#autism_caic =  autism_other, 
                      atlass_caic  =  atlass_other, 
-                     crohn_caic   =  crohn_other, 
-                     soil_caic    =  soil_other)
+                     crohn_caic   =  crohn_other
+                     #soil_caic    =  soil_other
+                     )
 #######################################################
 caic_df <- caic_list %>%
   map_dfr(~map_df(.x, ~tibble(Name = names(.x), Estimate = .x), 
@@ -116,10 +117,52 @@ res     =  lapply(mod_list, function(x){
                            df = bind_rows(df1, df2) %>%
                              mutate(Delta_AICc = AICc - min(AICc)) %>%
                              arrange(Delta_AICc)
+                           rownames(df) =  df$Modnames
                            df
                            })
 
 res
+#############################################################
+
+aic_filtered <- aic %>%
+  #filter(Model %in% c("US", "USzi")) %>%
+  select(Dataset, Model, Estimate) %>%
+  setNames(c("Dataset", "Model", "AICc")) %>%
+  mutate(Source = "aic_conditional")
+
+# Convert res list to a structured format
+res_list <- list(
+  autism = res$autism_models,
+  atlass = res$atlass_models,
+  crohn  = res$crohn_models,
+  soil   = res$soil_models
+)
+
+res_filtered <- bind_rows(lapply(names(res_list), function(dataset) {
+  df <- as.data.frame(res_list[[dataset]])  
+  df <- tibble::rownames_to_column(df, "Model")  # Extract row names as a column
+  df$Dataset <- paste0(dataset, "_caic")  # Match dataset naming
+  df$Source <- "res"
+  df
+}), .id = "ID") 
+
+rrr = res_filtered %>%
+  #filter(Model %in% c("US", "USzi")) %>%
+  select(Model, AICc,Dataset)  %>%
+  mutate(Source = "aicc_marginal")
+
+dddd = rbind(rrr,aic_filtered)
+
+ggplot(dddd, aes(x = Model, y = AICc, group = Model, color = Source)) +
+  #geom_line(aes(linetype = Model), size = 1) +
+  geom_point(size = 3) +
+  facet_wrap(~Dataset, scales = "free_y") +
+  theme_bw() +
+  labs(title = "Comparison of AIC for US and USzi Models",
+       x = "Source",
+       y = "AIC Estimate",
+       color = "type")
+
 #' the 4th data set fitting zi for each taxa leads to worse AICc
 #' Nothing changes for the 3rd dataset in terms of the order but each zi is better
 #' 

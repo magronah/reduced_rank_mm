@@ -13,9 +13,9 @@ titles  =   c("50 subjects per group and 300 taxa",
              "75 subjects per group and 500 taxa",
              "100 subjects per group and 600 taxa")
 ########################################################
-n = 20; p1  =   p2   =  p3 =  p4  = p5  = p6 = p7 = list()
+n = 24; p1  =   p2   =  p3 =  p4  = p5  = p6 = p7 = list()
 BIAS = VARIAN  =  list()
-
+sz =2; wd  = 0.8; lw = 2
 for(i in 1:length(strg)){
   ########################################################
   path  =   paste0(strg[[i]]) 
@@ -54,9 +54,9 @@ for(i in 1:length(strg)){
   var   =   err_extract(dd, "avg_var")
   
   p2[[i]] = ggplot(mse, aes(model, average_value)) +
-    geom_point() + 
-    geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2) +
-    geom_hline(yintercept = mse["RRzi",1], linetype = "dashed", color = "red") +
+    geom_point(size = 3*sz) + 
+    geom_errorbar(aes(ymin = lwr, ymax = upr), size=sz,  width = wd) +
+    geom_hline(yintercept = mse["RRzi",1],  linewidth = lw,linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title= titles[[i]],
          y = "Average RMSE across taxa",
@@ -65,9 +65,9 @@ for(i in 1:length(strg)){
   
   BIAS[[i]] = bias
   p3[[i]] = ggplot(bias, aes(model, average_value)) +
-    geom_point() +
-    geom_errorbar(aes(ymin = lwr, ymax = upr),  width = 0.2) +
-    geom_hline(yintercept = bias["RRzi",1], linetype = "dashed", color = "red") +
+    geom_point(size = 3*sz) +
+    geom_errorbar(aes(ymin = lwr, ymax = upr), size=sz, width = wd) +
+    geom_hline(yintercept = bias["RRzi",1],  linewidth = lw,linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title = titles[[i]],
          y = "Average bias across taxa"
@@ -77,9 +77,9 @@ for(i in 1:length(strg)){
   
   VARIAN[[i]] = var
   p4[[i]] = ggplot(var, aes(model, average_value)) +
-    geom_point() +
-    geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2) +
-    geom_hline(yintercept = (var["RRzi",1]), linetype = "dashed", color = "red") +
+    geom_point(size = 3*sz) +
+    geom_errorbar(aes(ymin = lwr, ymax = upr), size=sz, width = wd) +
+    geom_hline(yintercept = (var["RRzi",1]), linewidth = lw, linetype = "dashed", color = "red") +
     custom_theme(n) +
     labs(title = titles[[i]],
          x = " ",
@@ -134,7 +134,7 @@ for(i in 1:length(strg)){
 }
 ##################################################################
 trend <- (p1[[1]]|p1[[2]]|p1[[3]]) + plot_layout(guides = "collect")  
-size = 3; width =  25; height =  7; dpi = 300
+size = 3; width =  28; height =  8; dpi = 300
 ggsave("fig/trend2.png", plot = trend, 
        width = width, 
        height = height, 

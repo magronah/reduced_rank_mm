@@ -140,6 +140,7 @@ wald_confint = function(mod, conf_level = .95,
   saveRDS(ss, file = paste0(path,"sdreport_",mod_name,".rds"))
   #ss  <-  readRDS(paste0(path,"sdreport_",mod_name,".rds"))
   #########################################################
+  #class(ss$jointPrecision)
   ss$jointPrecision <-  as(ss$jointPrecision, "sparseMatrix")
   inverse_mat       <-  solve(ss$jointPrecision)
     
@@ -182,6 +183,73 @@ wald_confint = function(mod, conf_level = .95,
   dd
 }
 
+#'
+#' @param mod 
+#' @param ntaxa 
+#' @param conf_level 
+#'
+#' @return
+#' @export
+#' 
+#' @examples
+wald_confint2 = function(mod, conf_level = .95, 
+                        in_sd = 1, ntaxa,
+                        mean_count, mod_name,
+                        path){
+  
+  
+  dd       =   model.frame(mod)
+  ntax     =   length(unique(dd$taxon))
+  lev      =   length(levels(unique(dd$group)))
+  entries  =   1:(lev*ntax)
+  
+  groups   =   split(entries, ceiling(seq_along(entries) / lev))
+  grp_ind  =   as.numeric(unlist(lapply(groups, function(x) x[-1])))
+  ########################################################
+  ss <- TMB::sdreport(mod$obj, getJointPrecision = TRUE)
+  saveRDS(ss, file = paste0(path,"sdreport_",mod_name,".rds"))
+  #ss  <-  readRDS(paste0(path,"sdreport_",mod_name,".rds"))
+  #ss$jointPrecision <-  as(ss$jointPrecision, "sparseMatrix")
+  #inverse_mat       <-  solve(full_matrix)
+  #se_vec      <-  sqrt(diag(inverse_mat))
+  #se_vec0   <-    se_vec[names(se_vec) == "b"]#[entries]
+  #########################################################
+  full_matrix <-  (ss$jointPrecision)
+  b_indices   <-  which(grepl("^b$", rownames(full_matrix), 
+                              perl = TRUE))
+
+  b_matrix    <-  full_matrix[b_indices,b_indices]
+  b_subMat    <-  b_matrix[entries,entries] 
+  inverse_mat <-  solve(b_subMat)
+  se_vec      <-  sqrt(diag(b_subMat))  
+  
+  #plot(se_vec0,se_vec1)
+  #abline(0,1)
+  #########################################################
+  saveRDS(se_vec, file = paste0(path,"full_sdr_",mod_name,".rds"))
+  # ########################################################
+  full_est  =   mod$fit$parfull
+  est       =   full_est[names(full_est) == "b"][grp_ind]
+  sd_err    =   se_vec[grp_ind]
+  
+  # Calculate z-score for the desired confidence level
+  z_score    =    qnorm(conf_level + (1 - conf_level)/2)
+  
+  # Calculate confidence intervals
+  dd      =    data.frame(est_param =   est,
+                          lwr       =   est - z_score*in_sd*sd_err,
+                          upr       =   est + z_score*in_sd*sd_err)
+  
+  # Calculate p-values
+  z_stat   =  est / sd_err
+  p_values =  2 * (1 - pnorm(abs(z_stat)))  # Two-tailed p-value
+  
+  dd$pvalue  =  p_values
+  dd$width   =   dd$upr  - dd$lwr
+  dd$mean_count  =  as.numeric(mean_count)
+  dd$param_name  =  names(mean_count)
+  dd
+}
 
 ##############################################
 extract_grp_effect  =  function(dd_full,ntaxa){

@@ -12,7 +12,8 @@ if (FALSE) {
 }
 
 
-library(glmmTMB, lib.loc = "/home/agronahm/projects/def-bolker/agronahm/glmmTMB_lev")
+#library(glmmTMB, lib.loc = "/home/agronahm/projects/def-bolker/agronahm/glmmTMB_lev")
+library(glmmTMB, lib.loc = "~/Documents/glmmTMB_lev")
 
 ## both of these packages *must* be loaded for leverage code to work
 library(RTMB)
@@ -65,6 +66,7 @@ cAIC(fm0)
 c(clik = condlik2, cdf = cdf, caic = 2*(-condlik2 + cdf))
 
 mm <- readRDS("reproducible/rr_mod.rds")
+mm$fit[c("iterations", "evaluations")]
 mf <- model.frame(mm)
 length(unique(mf$taxon))  ## 969 taxa
 length(unique(mf$site))   ## 8 'subjects'
