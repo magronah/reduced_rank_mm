@@ -15,6 +15,8 @@ length(unique(newdata$taxon))
 p0 <- with(mm$obj$env, parList(last.par.best[-random]))
 ## exclude empty (unused) parameters
 p0 <- p0[lengths(p0) > 0]
+
+
 ## exclude random effects
 p0 <- p0[setdiff(names(p0), "b")]
 
@@ -39,7 +41,7 @@ options(glmmTMB_openmp_debug = FALSE)
 
 #Run this as jobs. Run this as job
 calc_leverage <- function(i, eps = 5) {
-    i <- 800; eps <-  5 #1e-4#
+    i <- 800; eps <-  0#1e-4#
     newdata$count[i]
     pert_data <- newdata
     pert_data$count[i] <- pert_data$count[i] + eps
@@ -57,6 +59,9 @@ calc_leverage <- function(i, eps = 5) {
     
     system.time(newfit1 <- fitTMB(newfit0, doOptim = FALSE)) ## 1 second
     system.time(newfit2 <- with(newfit1, nlminb(par, fn, gr))) ## 80 seconds
+    newfit3 = finalizeTMB(newfit0,newfit1,newfit2)
+    newfit3 <- .Last.value
+    
     ## then we should be
     X <- getME(mm, "X")
     Z <- getME(mm, "Z")
@@ -66,6 +71,8 @@ calc_leverage <- function(i, eps = 5) {
     ## perturbed prediction
     pred <- drop(X[i,] %*% pp[["beta"]] + Z[i,] %*% pp[["b"]])
     ## original prediction
+    pred0  <- predict(newfit1$obj, type = "link")[i]
+  
     pred0  <- predict(mm, type = "link")[i]
     # pred0 <- fitted(mm)[i]
     (pred - pred0) / eps

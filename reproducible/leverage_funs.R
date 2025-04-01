@@ -6,7 +6,7 @@ leverage_brute_force <- function(model, data,
   n <- nrow(data)
   index <-  grp_list[[grp_index]]
   l     =   length(index)
-  H <- matrix(0, n, n)  
+  H <- Matrix(0, n, n, sparse = TRUE)  # Uses much less memory
   
   y_pred <- y_hat(model, data)  
   yname  <- as.character(formula(model)[[2]])
