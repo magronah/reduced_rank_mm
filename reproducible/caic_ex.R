@@ -23,9 +23,11 @@ library(lme4)
 library(cAIC4)
 
 ## testing leverage/cAIC computations on sleepstudy example 
+dd=sleepstudy
+dd$Reaction  = ceiling(dd$Reaction)
 data("sleepstudy", package = "lme4")
-fm1 <- glmmTMB(Reaction ~ Days + (Days | Subject), sleepstudy)
-fm0 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy, REML = FALSE)
+fm1 <- glmmTMB(Reaction ~ Days + (Days | Subject), dd, family = nbinom2)
+fm0 <- lmer(Reaction ~ Days + (Days | Subject), dd, REML = FALSE)
 
 
 X <- getME(fm1, "X")
@@ -54,6 +56,90 @@ condlik2 <- sum(dnorm(resp, fitted(fm1), sigma(fm1), log = TRUE))
 lfm1 <- leverage(fm1)
 plot(lfm1, hatvalues(fm0))
 abline(a=0, b=1, lty = 2)
+cAIC(fm0)
+dim(dd)
+
+cdf <- sum(lfm1)+1
+c(clik = condlik2, cdf = cdf, caic = 2*(-condlik2 + cdf))
+############################################################
+par_ctrl <- glmmTMBControl(
+  parallel = list(n = 10, autopar = TRUE)
+)
+
+gprior <- data.frame(prior = "gamma(2, 2.5)",
+                     class = "theta_sd",
+                     coef = "")
+
+n <- nrow(dd)
+batch_size <- 30  
+grp_list <- split(1:n, ceiling(seq_along(1:n) / batch_size))
+
+model =  fm1; H_matrice = list()
+for(j in 1:length(grp_list)){
+  H_matrice[[j]] <- leverage_brute_force(fm1, data = dd,grp_index = j,
+                                         grp_list = grp_list)
+}
+
+pp=lapply(H_matrice, function(x){
+  sum(diag(x))
+})
+
+sum(unlist(pp))
+
+H_matrix <- leverage_brute_force1(fm1, data = dd)
+diag_H <- diag(H_matrix)
+print(range(diag_H))   
+sum(diag_H)
+
+
+
+
+
+
+
+#data = newdata; model  = mm; epsilon 
+calc_leverage <- function(model, data,epsilon = 5) {
+  n <- nrow(data)
+  H <- matrix(0, n, n)  
+  
+  y_pred <- y_hat(model, data)  
+  yname  <- as.character(formula(model)[[2]])
+  
+  p0 <- with(model$obj$env, parList(last.par.best[-random]))
+  p0 <- p0[lengths(p0) > 0]
+  p0 <- p0[setdiff(names(p0), "b")]
+  
+  for (i in 1:n) {
+    data_perturb <- data
+    data_perturb[[yname]][i] <-  data[[yname]][i] + epsilon
+    model_up <- update(model, start = p0, data = data_perturb)
+    #newfit0 <- update(model, start = p0, data = data_perturb, verbose = FALSE,
+     #                 control = par_ctrl, priors = gprior, doFit = FALSE)
+    
+    #system.time(newfit1 <- fitTMB(newfit0, doOptim = FALSE)) ## 1 second
+    #system.time(newfit2 <- with(newfit1, nlminb(par, fn, gr))) ## 80 seconds
+    ## then we should be
+    X <- getME(model, "X")
+    Z <- getME(model, "Z")
+    X1 <- getME(model_up, "X")
+    Z1 <- getME(model_up, "Z")
+    stopifnot(Z==Z1)
+    pp <- with(newfit1$env, parList(last.par.best[-random]))
+    # these bs from  parList(last.par.best[-random]) are the problem
+    pp$b  <-  (newfit1$report()$b)
+    # perturbed prediction
+    y_pred_up <- drop(X[i,] %*% pp[["beta"]] + Z[i,] %*% pp[["b"]])
+    y_pred_up <- y_hat(model_up, data_perturb)
+    # m=c(y_pred_up1,y_pred_up[i])
+    # print(m)
+    
+    H[, i] <- (y_pred_up - y_pred) / epsilon
+  }
+  
+  return(H)
+}
+
+
 
 
 ## not identical, but similar ...

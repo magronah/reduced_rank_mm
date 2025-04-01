@@ -1,3 +1,60 @@
+leverage_brute_force <- function(model, data,
+                                 epsilon = 5,
+                                 grp_index = 1,  
+                                 grp_list) {
+  
+  n <- nrow(data)
+  index <-  grp_list[[grp_index]]
+  l     =   length(index)
+  H <- matrix(0, n, n)  
+  
+  y_pred <- y_hat(model, data)  
+  yname  <- as.character(formula(model)[[2]])
+  
+  p0 <- with(model$obj$env, parList(last.par.best[-random]))
+  p0 <- p0[lengths(p0) > 0]
+  p0 <- p0[setdiff(names(p0), "b")]
+  
+  for (i in index) {
+    data_perturb <- data
+    data_perturb[[yname]][i] <-  data[[yname]][i] + epsilon
+    model_up <- update(model, start = p0, data = data_perturb)
+    y_pred_up <- y_hat(model_up, data_perturb)
+    
+    H[, i] <- (y_pred_up - y_pred) / epsilon
+  }
+  return(H)
+}
+
+
+y_hat <- function(model, data) {
+  predict(model, newdata = data, type = "response", re.form = NULL)
+}
+
+
+
+leverage_brute_force1 <- function(model, data,epsilon = 5) {
+  n <- nrow(data)
+  H <- matrix(0, n, n)  
+  
+  y_pred <- y_hat(model, data)  
+  yname  <- as.character(formula(model)[[2]])
+  
+  p0 <- with(model$obj$env, parList(last.par.best[-random]))
+  p0 <- p0[lengths(p0) > 0]
+  p0 <- p0[setdiff(names(p0), "b")]
+  
+  for (i in 1:n) {
+    data_perturb <- data
+    data_perturb[[yname]][i] <-  data[[yname]][i] + epsilon
+    model_up <- update(model, start = p0, data = data_perturb)
+    y_pred_up <- y_hat(model_up, data_perturb)
+    
+    H[, i] <- (y_pred_up - y_pred) / epsilon
+  }
+  return(H)
+}
+
 ## need to modify src/Makevars in glmmTMB directory to contain this
 ## (no fopenmp!)
 install_glmmTMB <- function(pkgdir, libdir, clean_src = TRUE) {
