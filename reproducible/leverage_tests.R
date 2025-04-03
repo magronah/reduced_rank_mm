@@ -175,3 +175,18 @@ invisible(clusterEvalQ(cl, library(glmmTMB, lib.loc = glmmTMB_lib)))
 m_big_Lvals2 <- parLapply(cl = cl, eps_vec2,
                       \(e) leverage_brute(m_big, data = df, inds = 1, eps = e,
                                           opt_args = list(control = list(trace = 100))))
+
+## all of these leverages are NEGATIVE (impossible???)
+## am I doing something fundamentally wrong?
+## is this happening because the original model didn't converge properly?
+
+## test with eps = 0; is it -Inf?
+leverage_brute(m_big, data = df, inds = 1, eps = 0, return_delta = TRUE) ## -0.4
+
+## even simpler: refit from (supposed) optimal fit
+p0 <- with(m_big$obj$env, parList(last.par.best[-random]))
+p0 <- p0[lengths(p0) > 0]
+p0 <- p0[setdiff(names(p0), "b")]  ## drop 'b' parameters
+## full model refit (slow because we have to compute Std Devs etc ...)
+m_big_u <- update(m_big, start = p0)
+m_big$obj$fn() - m_big_u$obj$fn()

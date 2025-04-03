@@ -7,12 +7,14 @@
 #' @param scale data ("response") or linear predictor ("link") scale
 #' @param progress progress bar?
 #' @param opt_args additional arguments for optimizer
+#' @param return_delta for diagnostics/debugging: return unscaled delta rather than delta/eps?
 leverage_brute <- function(model, data, epsilon = 1e-3, inds = seq(nrow(data)),
                            fit_method = c("hack", "update"),
                            pred_method = c("hack", "predict"),
                            scale = c("response", "link"),
                            progress = FALSE,
-                           opt_args = list()
+                           opt_args = list(),
+                           return_delta = FALSE
                            ) {
 
     scale <- match.arg(scale)
@@ -72,7 +74,8 @@ leverage_brute <- function(model, data, epsilon = 1e-3, inds = seq(nrow(data)),
             y_pred_pert <- linkinv(y_pred_pert)
             y_pred[i] <- linkinv(y_pred[i])
         }
-        leverage[j] <- (y_pred_pert - y_pred[i]) / epsilon
+        leverage[j] <- (y_pred_pert - y_pred[i])
+        if (!return_delta) leverage[j] <-  leverage[j] / epsilon
     }
     if (progress) close(pb)
     return(leverage)
