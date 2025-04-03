@@ -163,3 +163,15 @@ eps_vec <- c(0.01, 0.03, 0.1, 0.3, 1, 3, 10)
 m_big_Lvals <- sapply(eps_vec,
                       \(e) leverage_brute(m_big, data = df, inds = 1, eps = e,
                                           opt_args = list(control = list(trace = 50))))
+plot(eps_vec, m_big_Lvals, type = "b", ylim = c(0,1))
+eps_vec2 <- seq(0.1, 10, length = 31)
+
+library(parallel)
+cl <- makeCluster(12)
+clusterExport(cl, c("m_big", "df", "gprior", "par_ctrl", "glmmTMB_lib"))
+invisible(clusterEvalQ(cl, source("reproducible/leverage_funs.R")))
+invisible(clusterEvalQ(cl, library(glmmTMB, lib.loc = glmmTMB_lib)))
+              
+m_big_Lvals2 <- parLapply(cl = cl, eps_vec2,
+                      \(e) leverage_brute(m_big, data = df, inds = 1, eps = e,
+                                          opt_args = list(control = list(trace = 100))))
