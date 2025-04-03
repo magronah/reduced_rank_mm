@@ -143,3 +143,23 @@ sum(lev_vals2_TMB)
 ## hmm, that didn't work -- why not??
 
 hist(lev_vals2_TMB, breaks = 40)
+
+####
+## tests on (subsets of) real data
+m_big <- readRDS("reproducible/rr_mod.rds")
+m_big <- up2date(m_big)
+m_big$call
+## need gprior and par_ctrl in order to refit
+par_ctrl <- glmmTMBControl()
+gprior  <- data.frame(prior = "gamma(2, 2.5)",
+                      class = "theta_sd",
+                      coef = "")
+
+
+df <- model.frame(m_big) |>
+    dplyr::rename(normalizer = "offset(normalizer)")
+
+eps_vec <- c(0.01, 0.03, 0.1, 0.3, 1, 3, 10)
+m_big_Lvals <- sapply(eps_vec,
+                      \(e) leverage_brute(m_big, data = df, inds = 1, eps = e,
+                                          opt_args = list(control = list(trace = 50))))
