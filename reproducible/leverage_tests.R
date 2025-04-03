@@ -187,6 +187,13 @@ leverage_brute(m_big, data = df, inds = 1, eps = 0, return_delta = TRUE) ## -0.4
 p0 <- with(m_big$obj$env, parList(last.par.best[-random]))
 p0 <- p0[lengths(p0) > 0]
 p0 <- p0[setdiff(names(p0), "b")]  ## drop 'b' parameters
+
 ## full model refit (slow because we have to compute Std Devs etc ...)
+
+detach("package:glmmTMB")
+library(glmmTMB) ## we don't need the fancy leverage one, want parallelization
+m_big$obj$fn()
+logLik(m_big)
+## eigen(vcov(m_big, full = TRUE))$values
 m_big_u <- update(m_big, start = p0)
 m_big$obj$fn() - m_big_u$obj$fn()
