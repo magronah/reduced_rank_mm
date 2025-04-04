@@ -143,3 +143,61 @@ sum(lev_vals2_TMB)
 ## hmm, that didn't work -- why not??
 
 hist(lev_vals2_TMB, breaks = 40)
+
+####
+## tests on (subsets of) real data
+m_big <- readRDS("reproducible/rr_mod.rds")
+m_big <- up2date(m_big)
+m_big$call
+## need gprior and par_ctrl in order to refit
+par_ctrl <- glmmTMBControl()
+gprior  <- data.frame(prior = "gamma(2, 2.5)",
+                      class = "theta_sd",
+                      coef = "")
+
+
+df <- model.frame(m_big) |>
+    dplyr::rename(normalizer = "offset(normalizer)")
+
+eps_vec <- c(0.01, 0.03, 0.1, 0.3, 1, 3, 10)
+m_big_Lvals <- sapply(eps_vec,
+                      \(e) leverage_brute(m_big, data = df, inds = 1, eps = e,
+                                          opt_args = list(control = list(trace = 50))))
+plot(eps_vec, m_big_Lvals, type = "b", ylim = c(0,1))
+eps_vec2 <- seq(0.1, 10, length = 31)
+
+library(parallel)
+cl <- makeCluster(12)
+clusterExport(cl, c("m_big", "df", "gprior", "par_ctrl", "glmmTMB_lib"))
+invisible(clusterEvalQ(cl, source("reproducible/leverage_funs.R")))
+invisible(clusterEvalQ(cl, library(glmmTMB, lib.loc = glmmTMB_lib)))
+              
+m_big_Lvals2 <- parLapply(cl = cl, eps_vec2,
+                      \(e) leverage_brute(m_big, data = df, inds = 1, eps = e,
+                                          opt_args = list(control = list(trace = 100))))
+
+## all of these leverages are NEGATIVE (impossible???)
+## am I doing something fundamentally wrong?
+## is this happening because the original model didn't converge properly?
+
+## test with eps = 0; is it -Inf?
+leverage_brute(m_big, data = df, inds = 1, eps = 0, return_delta = TRUE) ## -0.4
+
+## even simpler: refit from (supposed) optimal fit
+p0 <- with(m_big$obj$env, parList(last.par.best[-random]))
+p0 <- p0[lengths(p0) > 0]
+p0 <- p0[setdiff(names(p0), "b")]  ## drop 'b' parameters
+
+## full model refit (slow because we have to compute Std Devs etc ...)
+
+detach("package:glmmTMB")
+library(glmmTMB) ## we don't need the fancy leverage one, want parallelization
+m_big$obj$fn()
+logLik(m_big)
+## eigen(vcov(m_big, full = TRUE))$values
+m_big_u <- update(m_big, start = p0,
+                  control = glmmTMBControl(parallel = list(autopar = TRUE, n = 10),
+                                           conv_check = "skip",
+                                           optCtrl = list(eval.max=100000, iter.max = 10000, trace = 100)))
+
+m_big$obj$fn() - m_big_u$obj$fn()
