@@ -195,5 +195,8 @@ library(glmmTMB) ## we don't need the fancy leverage one, want parallelization
 m_big$obj$fn()
 logLik(m_big)
 ## eigen(vcov(m_big, full = TRUE))$values
-m_big_u <- update(m_big, start = p0)
+m_big_u <- update(m_big, start = p0,
+                  control = glmmTMBControl(parallel = list(autopar = TRUE, n = 10)),
+                  optCtrl = list(eval.max=10000, iter.max = 1000, trace = 100))
+
 m_big$obj$fn() - m_big_u$obj$fn()
