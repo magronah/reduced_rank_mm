@@ -31,8 +31,6 @@ y_hat <- function(model, data) {
   predict(model, newdata = data, type = "response", re.form = NULL)
 }
 
-
-
 leverage_brute_force1 <- function(model, data,epsilon = 5) {
   n <- nrow(data)
   H <- matrix(0, n, n)  
