@@ -7,7 +7,7 @@ library(Matrix)
 path1   =   paste0("real_data/")
 source(paste0(path1,"fun.R"))
 #########################################################
-filenames <- c("rr_mod.rds")
+filenames <- c("rrzi_each_mod.rds")
 autism_path <- paste0("real_data/autism_data/results/")
 autism_models <- load_models(autism_path, filenames)
 #########################################################
@@ -15,7 +15,7 @@ mod   =  autism_models[[1]]
 #########################################################
 par_ctrl <- glmmTMBControl(parallel = list(n = 10, autopar = TRUE),
                            optCtrl  = list(eval.max=100, iter.max = 10)
-                           )
+)
 
 gprior  <- data.frame(prior = "gamma(2, 2.5)",
                       class = "theta_sd",
@@ -29,11 +29,11 @@ df   <-  model.frame(mod)
 dd   <-  df |> dplyr::rename(normalizer = "offset(normalizer)")
 
 lev  <-  leverage_brute_modified(mmd, data = dd, inds = i, eps = 0.1,
-                        fit_method = "update", scale = "response",
-                        pred_method  = "predict",
-                        progress = TRUE) 
+                                 fit_method = "update", scale = "response",
+                                 pred_method  = "predict",
+                                 progress = TRUE) 
 ############################################################
-file_path  =  paste0(autism_path,"leverage/rr/")
+file_path  =  paste0(autism_path,"leverage/rrzi/")
 
 if (!dir.exists(file_path)) {
   dir.create(file_path, recursive = TRUE)

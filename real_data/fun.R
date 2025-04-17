@@ -1,3 +1,88 @@
+
+#' @param model fitted TMB model
+#' @param data original data
+#' @param epsilon perturbation size
+#' @param inds indices of observations to perturb
+#' @param fit_method "hack" = quick, without finalizing model object; "update" = slow, complete model fit + update
+#' @param pred_method "hack" = based on linear model; "predict" = from fitted model object
+#' @param scale data ("response") or linear predictor ("link") scale
+#' @param progress progress bar?
+#' @param opt_args additional arguments for optimizer
+#' @param return_delta for diagnostics/debugging: return unscaled delta rather than delta/eps?
+leverage_brute_modified <- function(model, data, epsilon = 1e-3, inds = seq(nrow(data)),
+                                    fit_method = c("hack", "update"),
+                                    pred_method = c("hack", "predict"),
+                                    scale = c("response", "link"),
+                                    progress = FALSE,
+                                    opt_args = list(),
+                                    return_delta = FALSE
+) {
+  
+  scale <- match.arg(scale)
+  fit_method <- match.arg(fit_method)
+  pred_method <- match.arg(pred_method)
+  
+  n <- length(inds)
+  
+  if (progress) pb <- txtProgressBar(max = n, style = 3)
+  ## for now, compute all leverages on link scale
+  y_pred <- predict(model, type = "response")
+  leverage <- rep(NA_real_, n)
+  yname  <- as.character(formula(model)[[2]])
+  
+  ## extract parameters so we can start from best vals
+  p0 <- with(model$obj$env, parList(last.par.best[-random]))
+  p0 <- p0[lengths(p0) > 0]
+  p0 <- p0[setdiff(names(p0), "b")]  ## drop 'b' parameters
+  
+  X <- getME(model, "X")
+  Z <- getME(model, "Z")
+  
+  for (j in seq_along(inds)) {
+    if (progress) setTxtProgressBar(pb, j)
+    i <- inds[j]
+    data_perturb <- data
+    data_perturb[[yname]][i] <-  data[[yname]][i] + epsilon
+    if (fit_method == "hack") {
+      ## quick/hacked new fit
+      ## don't want to see warnings about non-integer counts
+      suppressWarnings(
+        newfit0 <- update(model, start = p0, data = data_perturb, verbose = FALSE, doFit = FALSE)
+      )
+      system.time(newfit1 <- fitTMB(newfit0, doOptim = FALSE)) ## 1 second
+      system.time(newfit2 <- with(newfit1,
+                                  do.call(nlminb,
+                                          c(list(start=par, objective=fn, gradient=gr),
+                                            opt_args)))
+      )
+    } else {
+      ## full new fit
+      suppressWarnings(
+        newfit0 <- update(model, start = p0, data = data_perturb, verbose = FALSE)
+      )
+      newfit1 <- newfit0$obj
+    }
+    pp <- with(newfit1$env, parList(last.par.best[-random]))
+    pp$b  <-  newfit1$report()$b
+    if (pred_method == "hack") {
+      y_pred_pert <- drop(X[i,] %*% pp[["beta"]] + Z[i,] %*% pp[["b"]])
+    } else {
+      if (fit_method == "hack") stop("can't do regular pred with hacked fit")
+      y_pred_pert <- predict(newfit0, type = "link")[i]
+    }
+    if (scale == "response") {
+      linkinv <- family(model)$linkinv
+      y_pred_pert <- linkinv(y_pred_pert)
+      #y_pred[i] <- linkinv(y_pred[i])
+    }
+    leverage[j] <- (y_pred_pert - y_pred[i])
+    if (!return_delta) leverage[j] <-  leverage[j] / epsilon
+  }
+  if (progress) close(pb)
+  return(leverage)
+}
+
+
 ## https://github.com/glmmTMB/glmmTMB/issues/1059#issuecomment-2187660510
 library(nloptr)
 library(glmmTMB)
