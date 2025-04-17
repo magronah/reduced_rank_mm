@@ -1,7 +1,9 @@
 source("reproducible/leverage_funs.R")
 
 ## adjust as required
-glmmTMB_lib <- "./glmmTMB_lev"
+# glmmTMB_lib <- "./glmmTMB_lev"
+glmmTMB_lib <- "~/Documents/glmmTMB_lev"
+
 
 ## install_glmmTMB("~/R/pkgs/glmmTMB/glmmTMB", glmmTMB_lib)
 
@@ -91,6 +93,8 @@ fm2 <- glmmTMB(form, family = nbinom2, data = dd)
 leverage_brute(fm2, data = dd, inds = 1, eps = 0.1)
 ## re-fit full model: different, but not very different
 leverage_brute(fm2, data = dd, inds = 1, eps = 0.1, fit_method = "update")
+leverage_brute(fm2, data = dd, inds = 1, eps = 0.1,pred_method = "predict", 
+               fit_method = "update")
 
 ## results on response scale are also somewhat sensible
 leverage_brute(fm2, data = dd, inds = 1, eps = 0.1, scale = "response")
@@ -125,25 +129,12 @@ samp <- sample(nrow(dd), 20)
 sub_levs <- lev_vals2_TMB[samp]
 m_sub <- mean(sub_levs)
 sd_sub <- sd(sub_levs)
+tt = 2
+(nrow(dd)^2*(sd_sub^2))/tt^2
+m_sub*nrow(dd)
 
-## suppose we want to reduce the SE of the trace to 5% of its mean
-## i.e. SE(trace)/trace = 0.05
-## => SE(mean leverage)/(mean leverage) = 0.05  (divide top and bottom by N: trace = N*mean_leverage
-## => SE(mean_lev) = 0.05*mean_lev
-## => SD(mean_lev)/sqrt(n) = 0.05*mean_lev
-## => sqrt(n) = SD(mean_lev)/(0.05*mean_lev)
-## => n = (SD(mean_lev)/(0.05*mean_lev))^2
-
-(sd_sub/(0.05*m_sub))^2  ## 110 in this case
-
-set.seed(101)
-samp2 <- sample(nrow(dd), 110)
 sum(lev_vals2_TMB)
-110*mean(lev_vals2_TMB[samp2])
-## hmm, that didn't work -- why not??
-
 hist(lev_vals2_TMB, breaks = 40)
-
 ####
 ## tests on (subsets of) real data
 m_big <- readRDS("reproducible/rr_mod.rds")

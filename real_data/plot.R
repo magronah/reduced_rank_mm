@@ -41,9 +41,9 @@ mod_list    =   lst(autism_models,atlass_models,crohn_models,soil_models)
 ######################################################################
 ##AIC comparison
 caic_files <- c(US   = "caic_us.rds",
-                USzi = "caic_uszi.rds",
-                RR   = "caic_rr.rds",
-                RRzi = "caic_rrzi.rds"
+                USzi = "caic_uszi.rds"
+                #RR   = "caic_rr.rds",
+                #RRzi = "caic_rrzi.rds"
                 ) 
 
 other_aic <- c(NB   = "nbmm_aicc.rds",

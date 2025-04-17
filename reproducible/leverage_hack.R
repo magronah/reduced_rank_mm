@@ -60,8 +60,7 @@ calc_leverage <- function(i, eps = 5) {
     system.time(newfit1 <- fitTMB(newfit0, doOptim = FALSE)) ## 1 second
     system.time(newfit2 <- with(newfit1, nlminb(par, fn, gr))) ## 80 seconds
     newfit3 = finalizeTMB(newfit0,newfit1,newfit2)
-    newfit3 <- .Last.value
-    
+
     ## then we should be
     X <- getME(mm, "X")
     Z <- getME(mm, "Z")
